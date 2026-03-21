@@ -49,7 +49,7 @@ export default function DashboardPage() {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
   // 兑换码相关状态
-  const [redeemCode, setRedeemCode] = useState<string>("");
+  const [redeemCode, setRedeemCode] = useState<string>("万柏666");
   const [isRedeeming, setIsRedeeming] = useState<boolean>(false);
   const [redeemError, setRedeemError] = useState<string | null>(null);
   const [redeemSuccess, setRedeemSuccess] = useState<string | null>(null);
@@ -62,13 +62,15 @@ export default function DashboardPage() {
     if (savedEvaluation !== null) {
       setEvaluationRemaining(parseInt(savedEvaluation, 10));
     } else {
-      setEvaluationRemaining(0); // 没有保存的值时设为0
+      // 无登录时也能有两次完整使用次数
+      setEvaluationRemaining(2);
     }
     
     if (savedOptimization !== null) {
       setOptimizationRemaining(parseInt(savedOptimization, 10));
     } else {
-      setOptimizationRemaining(0); // 没有保存的值时设为0
+      // 无登录时也能有两次完整使用次数
+      setOptimizationRemaining(2);
     }
     
     setIsLoadingCounts(false); // 加载完成
@@ -866,9 +868,9 @@ export default function DashboardPage() {
                     <div className="flex flex-col sm:flex-row gap-2">
                       <Input
                         type="text"
-                        placeholder="输入兑换码"
+                        placeholder="万柏666"
                         value={redeemCode}
-                        onChange={(e) => setRedeemCode(e.target.value)}
+                        readOnly
                         disabled={isRedeeming}
                         className="flex-1"
                         autoComplete="one-time-code"

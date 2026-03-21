@@ -375,7 +375,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className="scroll-smooth" id="top">
+    <html lang="zh-CN" className="scroll-smooth" data-scroll-behavior="smooth" id="top">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
       >
