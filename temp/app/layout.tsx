@@ -324,7 +324,7 @@ function Footer() {
               </span>
               <span className="block mt-2 px-3 py-1 rounded-full bg-background/30 border backdrop-blur-sm inline-flex items-center gap-2">
                 <span className="text-[10px]">🛡️</span>
-                <span>ICP备12345678号</span>
+                <span>京ICP备2026008659号</span>
                 <span className="w-1 h-1 rounded-full bg-accent/50 animate-pulse-subtle" />
               </span>
             </div>
