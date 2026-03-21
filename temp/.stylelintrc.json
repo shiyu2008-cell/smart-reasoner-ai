@@ -1,0 +1,77 @@
+{
+  "extends": ["stylelint-config-recommended"],
+  "plugins": [],
+  "rules": {
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": ["tailwind", "apply", "layer", "theme", "custom-variant", "screen"]
+      }
+    ],
+    "selector-class-pattern": null,
+    "color-function-notation": "modern",
+    "alpha-value-notation": "number",
+    "custom-property-pattern": null,
+    "keyframes-name-pattern": null,
+    "selector-pseudo-class-no-unknown": [
+      true,
+      {
+        "ignorePseudoClasses": ["global", "local", "focus-visible"]
+      }
+    ],
+    "property-no-unknown": [
+      true,
+      {
+        "ignoreProperties": ["text-wrap", "font-feature-settings", "scroll-behavior", "touch-action", "backdrop-filter", "-webkit-backdrop-filter", "background-clip", "-webkit-background-clip", "scrollbar-color", "scrollbar-width", "scrollbar-gutter"]
+      }
+    ],
+    "value-keyword-case": [
+      "lower",
+      {
+        "ignoreKeywords": ["/^[A-Z]/", "/^[a-z][A-Z]/", "currentColor"]
+      }
+    ],
+    "declaration-block-no-duplicate-properties": [
+      true,
+      {
+        "ignoreProperties": ["composes"]
+      }
+    ],
+    "no-descending-specificity": null,
+    "no-empty-source": null,
+    "function-no-unknown": [
+      true,
+      {
+        "ignoreFunctions": ["theme", "oklch", "color-mix", "calc", "clamp", "var", "color-contrast"]
+      }
+    ],
+    "length-zero-no-unit": null,
+    "rule-empty-line-before": null,
+    "property-no-vendor-prefix": null,
+    "no-duplicate-selectors": null,
+    "lightness-notation": null,
+    "hue-degree-notation": null,
+    "declaration-empty-line-before": null,
+    "at-rule-empty-line-before": null,
+    "selector-max-universal": null,
+    "selector-max-type": null,
+    "selector-max-id": null,
+    "selector-max-class": null,
+    "selector-max-combinators": null,
+    "selector-max-specificity": null,
+    "selector-max-attribute": null,
+    "selector-max-pseudo-class": null,
+    "color-no-invalid-hex": true,
+    "font-family-no-missing-generic-family-keyword": null,
+    "no-descending-specificity": null,
+    "no-duplicate-at-import-rules": null,
+    "no-empty-source": null
+  },
+  "ignoreFiles": [
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/*.min.css"
+  ]
+}

@@ -1,0 +1,1198 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  /* 渐变变量 - 情感化渐变叙事系统 */
+  --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  --gradient-card: linear-gradient(135deg, var(--card) 0%, oklch(0.98 0 0) 100%);
+  --gradient-subtle: linear-gradient(135deg, transparent 0%, oklch(0.99 0 0) 100%);
+  /* 情感化渐变系统 */
+  --gradient-serene: linear-gradient(135deg, oklch(0.95 0.05 240) 0%, oklch(0.85 0.1 200) 100%);
+  --gradient-energy: radial-gradient(circle at top right, oklch(0.7 0.25 350) 0%, oklch(0.85 0.15 300) 100%);
+  --gradient-mystery: radial-gradient(ellipse at center, oklch(0.3 0.1 280) 0%, oklch(0.15 0.05 260) 100%);
+  --gradient-sunset: linear-gradient(135deg, oklch(0.8 0.2 30) 0%, oklch(0.7 0.25 350) 50%, oklch(0.6 0.2 240) 100%);
+  --gradient-depth: linear-gradient(180deg, transparent 0%, oklch(0.1 0.02 260 / 0.3) 100%);
+  /* 动态渐变变量 */
+  --gradient-hover: linear-gradient(to right, currentColor 0%, color-mix(in oklab, currentColor, white 30%) 100%);
+  --gradient-active: linear-gradient(to right, currentColor 0%, color-mix(in oklab, currentColor, black 20%) 100%);
+  /* 阴影变量 */
+  --shadow-glow: 0 0 40px -10px var(--primary);
+  --shadow-soft: 0 8px 30px -10px oklch(0.1 0 0 / 0.1);
+  --shadow-card: 0 4px 20px -5px oklch(0.1 0 0 / 0.05);
+  /* 高级动画变量 - 扩展缓动函数库 */
+  --easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --easing-gentle: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --easing-elastic: cubic-bezier(0.5, 1.25, 0.75, 1.25);
+  --easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-sharp: cubic-bezier(0.4, 0, 0.6, 1);
+  /* 触摸目标尺寸 */
+  --touch-target-min: 44px;
+  /* 色彩对比度保障 */
+  --contrast-safe-primary: color-contrast(var(--primary) vs white, black);
+  --contrast-safe-text: color-contrast(var(--foreground) vs var(--background));
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.18 0.02 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.02 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.02 260);
+  /* 主色调：科技蓝，代表AI与专业 */
+  --primary: oklch(0.55 0.22 260);
+  --primary-foreground: oklch(0.99 0 0);
+  /* 辅助色：紫色，代表创新与智慧 */
+  --secondary: oklch(0.85 0.15 300);
+  --secondary-foreground: oklch(0.99 0 0);
+  --muted: oklch(0.97 0.01 260);
+  --muted-foreground: oklch(0.55 0.05 260);
+  /* 强调色：青色，代表科技与未来感 */
+  --accent: oklch(0.65 0.18 200);
+  --accent-foreground: oklch(0.99 0 0);
+  --destructive: oklch(0.65 0.25 30);
+  --border: oklch(0.92 0.01 260);
+  --input: oklch(0.95 0.01 260);
+  --ring: oklch(0.55 0.22 260);
+  --chart-1: oklch(0.55 0.22 260);
+  --chart-2: oklch(0.65 0.18 200);
+  --chart-3: oklch(0.85 0.15 300);
+  --chart-4: oklch(0.75 0.12 160);
+  --chart-5: oklch(0.6 0.2 20);
+  --sidebar: oklch(0.99 0 0);
+  --sidebar-foreground: oklch(0.18 0.02 260);
+  --sidebar-primary: oklch(0.55 0.22 260);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.85 0.15 300);
+  --sidebar-accent-foreground: oklch(0.99 0 0);
+  --sidebar-border: oklch(0.92 0.01 260);
+  --sidebar-ring: oklch(0.55 0.22 260);
+}
+
+.dark {
+  --background: oklch(0.14 0.02 260);
+  --foreground: oklch(0.98 0.01 260);
+  --card: oklch(0.18 0.02 260);
+  --card-foreground: oklch(0.98 0.01 260);
+  --popover: oklch(0.18 0.02 260);
+  --popover-foreground: oklch(0.98 0.01 260);
+  --primary: oklch(0.65 0.22 260);
+  --primary-foreground: oklch(0.14 0.02 260);
+  --secondary: oklch(0.25 0.05 300);
+  --secondary-foreground: oklch(0.98 0.01 260);
+  --muted: oklch(0.22 0.02 260);
+  --muted-foreground: oklch(0.75 0.05 260);
+  --accent: oklch(0.35 0.12 200);
+  --accent-foreground: oklch(0.98 0.01 260);
+  --destructive: oklch(0.7 0.25 30);
+  --border: oklch(1 0 0 / 0.12);
+  --input: oklch(1 0 0 / 0.15);
+  --ring: oklch(0.65 0.22 260);
+  --chart-1: oklch(0.65 0.22 260);
+  --chart-2: oklch(0.35 0.12 200);
+  --chart-3: oklch(0.25 0.05 300);
+  --chart-4: oklch(0.45 0.1 160);
+  --chart-5: oklch(0.55 0.2 20);
+  --sidebar: oklch(0.18 0.02 260);
+  --sidebar-foreground: oklch(0.98 0.01 260);
+  --sidebar-primary: oklch(0.65 0.22 260);
+  --sidebar-primary-foreground: oklch(0.98 0.01 260);
+  --sidebar-accent: oklch(0.25 0.05 300);
+  --sidebar-accent-foreground: oklch(0.98 0.01 260);
+  --sidebar-border: oklch(1 0 0 / 0.12);
+  --sidebar-ring: oklch(0.65 0.22 260);
+}
+
+/* 动画关键帧 */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-down {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { 
+    background-color: rgb(228 228 231 / 0.7); /* zinc-200 with opacity */
+  }
+  50% { 
+    background-color: rgb(212 212 216 / 0.9); /* zinc-300 with opacity */
+  }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 高级动画关键帧 */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-10px) rotate(1deg); }
+  75% { transform: translateY(-5px) rotate(-1deg); }
+}
+
+@keyframes glow {
+  0% { opacity: 0.8; filter: brightness(1); }
+  100% { opacity: 1; filter: brightness(1.2); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+/* AI智能进度指示器动画 */
+@keyframes ai-thinking {
+  0%, 100% { 
+    transform: translateY(0px) scale(1);
+    opacity: 0.8;
+  }
+  25% { 
+    transform: translateY(-8px) scale(1.1);
+    opacity: 1;
+  }
+  50% { 
+    transform: translateY(0px) scale(0.9);
+    opacity: 0.9;
+  }
+  75% { 
+    transform: translateY(-4px) scale(1.05);
+    opacity: 1;
+  }
+}
+
+/* 自然打字效果动画 */
+@keyframes natural-typing {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* 微庆祝效果动画 */
+@keyframes micro-celebration {
+  0% { 
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  50% { 
+    transform: scale(1.2) rotate(5deg);
+    opacity: 1;
+  }
+  100% { 
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes particle-float {
+  0% { 
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  10% { 
+    transform: translate(10px, -20px) scale(1);
+    opacity: 1;
+  }
+  90% { 
+    transform: translate(30px, -60px) scale(1);
+    opacity: 1;
+  }
+  100% { 
+    transform: translate(40px, -80px) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes thinking-cursor {
+  0%, 100% { 
+    opacity: 1;
+  }
+  50% { 
+    opacity: 0.3;
+  }
+}
+
+/* 图形元素组合动画系统 */
+@keyframes graphic-assemble-entry {
+  0% {
+    opacity: 0;
+    transform: translate(var(--entry-x, 0px), var(--entry-y, 0px)) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+@keyframes graphic-assemble-rotate {
+  0% {
+    transform: rotate(var(--start-rotation, 0deg)) scale(0.9);
+    opacity: 0.7;
+  }
+  100% {
+    transform: rotate(var(--end-rotation, 0deg)) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes graphic-assemble-connect {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes graphic-assemble-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+@keyframes graphic-assemble-glow {
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 0px var(--primary));
+  }
+  50% {
+    filter: brightness(1.2) drop-shadow(0 0 12px var(--primary));
+  }
+}
+
+/* 粒子系统动画 */
+@keyframes particle-float-random {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 0;
+  }
+  10% {
+    transform: translate(var(--float-x, 20px), var(--float-y, -20px)) scale(1);
+    opacity: var(--particle-opacity, 0.6);
+  }
+  90% {
+    transform: translate(calc(var(--float-x, 20px) * 1.5), calc(var(--float-y, -20px) * 2)) scale(1);
+    opacity: var(--particle-opacity, 0.6);
+  }
+  100% {
+    transform: translate(calc(var(--float-x, 20px) * 2), calc(var(--float-y, -20px) * 3)) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-orbital {
+  0% {
+    transform: rotate(0deg) translateX(var(--orbit-radius, 20px)) rotate(0deg) scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: rotate(360deg) translateX(var(--orbit-radius, 20px)) rotate(-360deg) scale(1);
+    opacity: 1;
+  }
+}
+
+/* 光晕与发光效果动画 */
+@keyframes aura-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes aura-radiate {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+    box-shadow: 0 0 0 0 var(--primary);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2);
+    box-shadow: 0 0 0 20px transparent;
+  }
+}
+
+@keyframes aura-wave {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.95);
+    filter: blur(0px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+    filter: blur(1px);
+  }
+  100% {
+    opacity: 0.8;
+    transform: scale(0.95);
+    filter: blur(0px);
+  }
+}
+
+/* 波浪背景动画 */
+@keyframes wave-movement {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 微交互动画 */
+@keyframes micro-interaction-bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-6px);
+  }
+  60% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes micro-interaction-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 现代动态视觉效果 */
+@keyframes modern-gradient-flow {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+@keyframes modern-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* 流光粒子效果动画系统 */
+@keyframes stream-flow {
+  0% {
+    transform: translateX(-100%) translateY(-50%) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.6;
+  }
+  85% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(200%) translateY(50%) rotate(5deg);
+    opacity: 0;
+  }
+}
+
+@keyframes stream-flow-diagonal {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.4;
+  }
+  80% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateX(200%) translateY(200%) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-glow-gradient {
+  0%, 100% {
+    opacity: 0.3;
+    filter: brightness(1) blur(0px);
+    background: radial-gradient(circle, var(--primary) 0%, var(--accent) 50%, transparent 100%);
+  }
+  50% {
+    opacity: 0.8;
+    filter: brightness(1.5) blur(1px);
+    background: radial-gradient(circle, var(--accent) 0%, var(--secondary) 50%, transparent 100%);
+  }
+}
+
+@keyframes particle-multi-color {
+  0% {
+    background: radial-gradient(circle, var(--primary) 0%, var(--accent) 100%);
+    transform: scale(1);
+  }
+  33% {
+    background: radial-gradient(circle, var(--accent) 0%, var(--secondary) 100%);
+    transform: scale(1.1);
+  }
+  66% {
+    background: radial-gradient(circle, var(--secondary) 0%, var(--primary) 100%);
+    transform: scale(0.9);
+  }
+  100% {
+    background: radial-gradient(circle, var(--primary) 0%, var(--accent) 100%);
+    transform: scale(1);
+  }
+}
+
+@keyframes ripple-interaction {
+  0% {
+    transform: scale(0);
+    opacity: 0.5;
+    background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 90%);
+  }
+}
+
+@keyframes sparkle-twinkle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.8) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) rotate(180deg);
+  }
+}
+
+@keyframes particle-attract {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(var(--attract-x, 0px), var(--attract-y, 0px)) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes particle-repulse {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(var(--repulse-x, 0px), var(--repulse-y, 0px)) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* 基础样式层 */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 触摸目标优化 - 确保交互元素的最小尺寸 */
+  button,
+  [role="button"],
+  a[href],
+  input[type="submit"],
+  input[type="button"],
+  input[type="reset"],
+  select,
+  .touch-target {
+    min-height: var(--touch-target-min);
+    min-width: var(--touch-target-min);
+  }
+
+  /* 小尺寸触摸目标优化 */
+  .touch-target-sm {
+    min-height: 36px;
+    min-width: 36px;
+  }
+
+  /* 禁用文本选择优化 */
+  button,
+  [role="button"] {
+    user-select: none;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* 自定义滚动条 - 现代渐变风格 */
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted/50;
+    border-radius: var(--radius);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border: 1px solid transparent;
+    background-clip: padding-box;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--border) 0%, color-mix(in oklab, var(--border), var(--primary) 30%) 100%);
+    border-radius: var(--radius);
+    transition: all 0.3s var(--easing-gentle);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    min-height: var(--touch-target-min);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    transform: scale(1.05);
+  }
+
+  ::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(135deg, var(--primary) 0%, color-mix(in oklab, var(--primary), black 20%) 100%);
+  }
+
+  /* Firefox 滚动条样式 */
+  * {
+    scrollbar-color: color-mix(in oklab, var(--border), var(--primary) 30%) var(--muted);
+    scrollbar-width: thin;
+    scrollbar-gutter: stable;
+  }
+
+  /* 选择文本样式 */
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+
+  /* 高级焦点样式 - 渐变边框与平滑过渡 */
+  :focus-visible {
+    @apply outline-none;
+    outline: 2px solid transparent;
+    outline-offset: 4px;
+    background-image: linear-gradient(var(--background), var(--background)), 
+                      linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    background-clip: padding-box, border-box;
+    background-origin: border-box;
+    border-radius: calc(var(--radius) - 2px);
+    box-shadow: 0 0 0 2px var(--background), 
+                0 0 0 4px var(--primary),
+                0 0 20px -5px var(--primary);
+    transition: all 0.3s var(--easing-gentle);
+  }
+
+  /* 减少运动偏好下的焦点样式 */
+  @media (prefers-reduced-motion: reduce) {
+    :focus-visible {
+      transition: none;
+      box-shadow: 0 0 0 2px var(--background), 
+                  0 0 0 4px var(--primary);
+    }
+  }
+
+  /* 触摸设备的悬停状态优化 */
+  @media (hover: hover) and (pointer: fine) {
+    .hover-lift {
+      transition: transform 0.3s var(--easing-gentle), box-shadow 0.3s var(--easing-gentle);
+    }
+    
+    .hover-lift:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-soft);
+    }
+  }
+}
+
+/* 组件样式层 */
+@layer components {
+  .container-responsive {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-soft hover:-translate-y-1;
+    transition-timing-function: var(--easing-gentle);
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
+  }
+
+  .gradient-border {
+    @apply border border-transparent bg-gradient-to-r from-background to-background bg-origin-border;
+    background-image: linear-gradient(var(--background), var(--background)), 
+                      linear-gradient(135deg, var(--primary), var(--accent));
+    background-clip: padding-box, border-box;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s var(--easing-emphasized);
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.6s var(--easing-emphasized);
+  }
+
+  .animate-slide-down {
+    animation: slide-down 0.6s var(--easing-emphasized);
+  }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 3s infinite var(--easing-gentle);
+  }
+
+  .animate-skeleton-pulse {
+    animation: skeleton-pulse 1.5s infinite ease-in-out;
+  }
+
+  .animate-gradient-shift {
+    background-size: 200% 200%;
+    animation: gradient-shift 8s ease infinite;
+  }
+
+  /* 情感化渐变背景类 */
+  .gradient-bg-serene {
+    background: var(--gradient-serene);
+  }
+
+  .gradient-bg-energy {
+    background: var(--gradient-energy);
+  }
+
+  .gradient-bg-mystery {
+    background: var(--gradient-mystery);
+  }
+
+  .gradient-bg-sunset {
+    background: var(--gradient-sunset);
+  }
+
+  .gradient-bg-depth {
+    background: var(--gradient-depth);
+  }
+
+  /* 高级动画类 */
+  .animate-bounce-gentle {
+    animation: bounce 1s var(--easing-bounce) infinite;
+  }
+
+  .animate-float {
+    animation: float 3s var(--easing-gentle) infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s var(--easing-gentle) infinite alternate;
+  }
+
+  /* 形态创新类 - 非矩形界面元素 */
+  .shape-fluid {
+    clip-path: polygon(0% 10%, 10% 0%, 90% 0%, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0% 90%);
+  }
+
+  .shape-organic {
+    clip-path: path('M 0,20 C 40,0 60,0 100,20 C 140,40 140,60 100,80 C 60,100 40,100 0,80 C -40,60 -40,40 0,20 Z');
+  }
+
+  .shape-wave {
+    clip-path: polygon(0% 20%, 20% 0%, 40% 20%, 60% 0%, 80% 20%, 100% 0%, 100% 100%, 0% 100%);
+  }
+
+  /* 交互反馈类 */
+  .interactive-scale {
+    transition: transform 0.3s var(--easing-gentle);
+  }
+
+  .interactive-scale:hover {
+    transform: scale(1.05);
+  }
+
+  .interactive-scale:active {
+    transform: scale(0.95);
+  }
+
+  /* 现代化动态效果类 */
+  .animate-ai-thinking {
+    animation: ai-thinking 2s var(--easing-bounce) infinite;
+  }
+
+  .animate-natural-typing {
+    animation: natural-typing 0.8s ease-in-out infinite;
+  }
+
+  .animate-micro-celebration {
+    animation: micro-celebration 0.6s var(--easing-bounce) forwards;
+  }
+
+  .animate-particle-float {
+    animation: particle-float 1.5s var(--easing-gentle) forwards;
+  }
+
+  /* 深度构建类 */
+  .depth-layer-1 {
+    box-shadow: 0 2px 8px -2px oklch(0 0 0 / 0.1);
+  }
+
+  .depth-layer-2 {
+    box-shadow: 0 8px 24px -4px oklch(0 0 0 / 0.15);
+  }
+
+  .depth-layer-3 {
+    box-shadow: 0 16px 48px -8px oklch(0 0 0 / 0.2);
+  }
+}
+
+/* 工具样式层 */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .glass-effect {
+    @apply backdrop-blur-md bg-background/80;
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  /* 响应式字体缩放 */
+  .text-fluid-xs { font-size: clamp(0.75rem, 2vw, 0.875rem); }
+  .text-fluid-sm { font-size: clamp(0.875rem, 2.5vw, 1rem); }
+  .text-fluid-base { font-size: clamp(1rem, 3vw, 1.125rem); }
+  .text-fluid-lg { font-size: clamp(1.125rem, 3.5vw, 1.25rem); }
+  .text-fluid-xl { font-size: clamp(1.25rem, 4vw, 1.5rem); }
+  .text-fluid-2xl { font-size: clamp(1.5rem, 5vw, 2rem); }
+  .text-fluid-3xl { font-size: clamp(2rem, 6vw, 2.5rem); }
+  .text-fluid-4xl { font-size: clamp(2.5rem, 7vw, 3rem); }
+
+  /* 渐变文本变体 */
+  .gradient-text-serene {
+    background: var(--gradient-serene);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
+  }
+
+  .gradient-text-energy {
+    background: var(--gradient-energy);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
+  }
+
+  .gradient-text-sunset {
+    background: var(--gradient-sunset);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
+  }
+
+  /* 高级背景效果 */
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.1'/%3E%3C/svg%3E");
+  }
+
+  .bg-grid {
+    background-image: linear-gradient(to right, var(--border) 1px, transparent 1px),
+                      linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  /* 触摸反馈类 */
+  .touch-feedback {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .touch-feedback::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.5s var(--easing-gentle), opacity 0.3s var(--easing-gentle);
+    pointer-events: none;
+  }
+
+  .touch-feedback:active::after {
+    opacity: 0.2;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  /* 响应式间距 */
+  .spacing-responsive {
+    padding: clamp(1rem, 3vw, 2rem);
+  }
+
+  /* AI思考过程样式 */
+  .thinking-process-text {
+    @apply text-xs text-muted-foreground/80 leading-relaxed font-mono;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    opacity: 0.85;
+  }
+
+  .thinking-process-text::selection {
+    @apply bg-primary/20 text-primary;
+  }
+
+  /* 思考过程流式输出动画 */
+  .thinking-streaming {
+    position: relative;
+  }
+
+  .thinking-streaming::after {
+    content: '▋';
+    animation: thinking-cursor 1s ease-in-out infinite;
+    @apply text-primary/60;
+  }
+
+  /* 图形组合动画类 */
+  .animate-graphic-assemble-entry {
+    animation: graphic-assemble-entry 0.8s var(--easing-emphasized) forwards;
+  }
+  
+  .animate-graphic-assemble-rotate {
+    animation: graphic-assemble-rotate 1s var(--easing-bounce) forwards;
+  }
+  
+  .animate-graphic-assemble-connect {
+    animation: graphic-assemble-connect 1.2s var(--easing-gentle) forwards;
+  }
+  
+  .animate-graphic-assemble-pulse {
+    animation: graphic-assemble-pulse 2s var(--easing-gentle) infinite;
+  }
+  
+  .animate-graphic-assemble-glow {
+    animation: graphic-assemble-glow 3s var(--easing-gentle) infinite alternate;
+  }
+  
+  /* 粒子系统动画类 */
+  .animate-particle-float-random {
+    animation: particle-float-random 1.5s var(--easing-gentle) forwards;
+  }
+  
+  .animate-particle-orbital {
+    animation: particle-orbital 4s var(--easing-gentle) infinite linear;
+  }
+  
+  /* 光晕效果动画类 */
+  .animate-aura-pulse {
+    animation: aura-pulse 3s var(--easing-gentle) infinite;
+  }
+  
+  .animate-aura-radiate {
+    animation: aura-radiate 2s var(--easing-gentle) forwards;
+  }
+  
+  .animate-aura-wave {
+    animation: aura-wave 4s var(--easing-gentle) infinite;
+  }
+  
+  /* 波浪背景动画类 */
+  .animate-wave-movement {
+    animation: wave-movement 10s var(--easing-gentle) infinite;
+  }
+  
+  /* 微交互动画类 */
+  .animate-micro-interaction-bounce {
+    animation: micro-interaction-bounce 1s var(--easing-bounce) infinite;
+  }
+  
+  .animate-micro-interaction-spin {
+    animation: micro-interaction-spin 2s var(--easing-gentle) infinite linear;
+  }
+  
+  /* 现代动态视觉效果类 */
+  .animate-modern-gradient-flow {
+    background-size: 200% 200%;
+    animation: modern-gradient-flow 8s var(--easing-gentle) infinite;
+  }
+  
+  .animate-modern-shimmer {
+    background-size: 200% auto;
+    animation: modern-shimmer 2s var(--easing-gentle) infinite linear;
+  }
+  
+  /* 新图形元素样式 */
+  .graphic-element {
+    @apply relative rounded-xl border bg-background/80 backdrop-blur-sm;
+  }
+  
+  .graphic-element-glow {
+    box-shadow: 0 0 20px -5px var(--primary);
+  }
+  
+  .graphic-element-pulse {
+    animation: graphic-assemble-pulse 2s var(--easing-gentle) infinite;
+  }
+  
+  /* 流光粒子效果动画类 */
+  .animate-stream-flow {
+    animation: stream-flow 8s var(--easing-gentle) infinite;
+  }
+  
+  .animate-stream-flow-diagonal {
+    animation: stream-flow-diagonal 10s var(--easing-gentle) infinite;
+  }
+  
+  .animate-particle-glow-gradient {
+    animation: particle-glow-gradient 3s var(--easing-gentle) infinite alternate;
+  }
+  
+  .animate-particle-multi-color {
+    animation: particle-multi-color 4s var(--easing-gentle) infinite;
+  }
+  
+  .animate-ripple-interaction {
+    animation: ripple-interaction 1s var(--easing-gentle) forwards;
+  }
+  
+  .animate-sparkle-twinkle {
+    animation: sparkle-twinkle 2s var(--easing-gentle) infinite;
+  }
+  
+  .animate-particle-attract {
+    animation: particle-attract 0.8s var(--easing-bounce) forwards;
+  }
+  
+  .animate-particle-repulse {
+    animation: particle-repulse 0.8s var(--easing-bounce) forwards;
+  }
+  
+  /* 高级流光效果容器 */
+  .stream-container {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: -1;
+  }
+  
+  .stream-line {
+    position: absolute;
+    width: 200%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--primary), var(--accent), var(--secondary), transparent);
+    filter: blur(1px);
+    opacity: 0.3;
+  }
+  
+  .stream-line-thick {
+    height: 4px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--primary), var(--accent), transparent);
+    filter: blur(2px);
+    opacity: 0.2;
+  }
+  
+  .stream-line-glow {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    filter: blur(0.5px);
+    opacity: 0.4;
+    box-shadow: 0 0 10px var(--primary);
+  }
+  
+  /* 高性能粒子优化 */
+  .particle-optimized {
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+  
+  /* 减少运动偏好优化 */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-stream-flow,
+    .animate-stream-flow-diagonal,
+    .animate-particle-glow-gradient,
+    .animate-particle-multi-color,
+    .animate-sparkle-twinkle {
+      animation: none;
+      opacity: 0.1;
+    }
+  }
+  
+  /* 骨架屏样式 */
+  .skeleton {
+    background-color: rgb(228 228 231 / 0.7); /* zinc-200 with opacity */
+    border-radius: 0.375rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(90deg, 
+      transparent, 
+      rgb(255 255 255 / 0.2), 
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
+  
+  .skeleton-text {
+    height: 1em;
+    margin-bottom: 0.5rem;
+    width: 100%;
+  }
+  
+  .skeleton-text:last-child {
+    margin-bottom: 0;
+  }
+  
+  .skeleton-text-sm {
+    height: 0.875em;
+  }
+  
+  .skeleton-text-lg {
+    height: 1.25em;
+  }
+  
+  .skeleton-circle {
+    border-radius: 50%;
+  }
+  
+  .skeleton-rounded {
+    border-radius: 0.75rem;
+  }
+  
+  /* 暗模式优化 */
+  .dark\:invert-shadow {
+    filter: invert(1) hue-rotate(180deg);
+  }
+}

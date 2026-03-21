@@ -1,0 +1,223 @@
+/**
+ * 兑换码 API 路由
+ * 
+ * 提供兑换码验证和奖励发放服务，支持预设兑换码和奖励次数管理。
+ * 兑换码使用规则：
+ * - 每个用户对同一个兑换码只能使用一次
+ * - 兑换码可兑换不同类型的奖励（次数或礼包）
+ * - 兑换码获得的奖励不计入常规限购次数
+ */
+
+import { NextRequest, NextResponse } from "next/server"
+
+// 兑换码数据接口
+interface RedeemRequest {
+  code: string;
+}
+
+interface RedeemResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+  data?: {
+    evaluationAdded: number;
+    optimizationAdded: number;
+    code: string;
+    rewardType: string;
+  };
+}
+
+// 预设兑换码配置
+const VALID_CODES: Record<string, { evaluation: number; optimization: number; description: string }> = {
+  "万柏666": {
+    evaluation: 3,
+    optimization: 3,
+    description: "新人福利兑换码，可获得3次评估和3次优化机会"
+  },
+  // 可以添加更多兑换码
+};
+
+// 简单的内存存储，记录已使用的兑换码（实际生产环境应使用数据库）
+// 这里使用IP地址作为用户标识（简化方案）
+const redeemedCodes = new Map<string, Set<string>>(); // IP -> Set<code>
+
+// 获取客户端IP（简化版本）
+function getClientIp(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  const ip = forwarded ? forwarded.split(',')[0].trim() : 'unknown';
+  return ip || 'unknown';
+}
+
+// API需要动态处理
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+/**
+ * POST 请求处理函数 - 兑换码验证和奖励发放
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // 解析请求体
+    const body: RedeemRequest = await request.json();
+    
+    // 验证必要字段
+    if (!body.code || typeof body.code !== 'string') {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: '兑换码不能为空',
+          message: '请输入有效的兑换码'
+        } as RedeemResponse,
+        { status: 400 }
+      );
+    }
+
+    const code = body.code.trim();
+    const clientIp = getClientIp(request);
+    
+    console.log('兑换码API请求:', { code, clientIp });
+
+    // 检查兑换码格式
+    if (code.length < 4 || code.length > 50) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: '兑换码格式无效',
+          message: '兑换码长度应在4-50个字符之间'
+        } as RedeemResponse,
+        { status: 400 }
+      );
+    }
+
+    // 检查兑换码是否有效
+    const validCode = VALID_CODES[code];
+    if (!validCode) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: '兑换码无效或已过期',
+          message: '您输入的兑换码不存在或已过期，请检查后重试'
+        } as RedeemResponse,
+        { status: 404 }
+      );
+    }
+
+    // 检查兑换码是否已被当前用户使用（基于IP的简化方案）
+    if (clientIp !== 'unknown') {
+      const userRedeemedCodes = redeemedCodes.get(clientIp) || new Set<string>();
+      if (userRedeemedCodes.has(code)) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: '兑换码已使用',
+            message: '您已使用过此兑换码，每个用户只能使用一次'
+          } as RedeemResponse,
+          { status: 409 }
+        );
+      }
+      
+      // 记录兑换码使用
+      userRedeemedCodes.add(code);
+      redeemedCodes.set(clientIp, userRedeemedCodes);
+    }
+
+    // 返回成功响应
+    return NextResponse.json({
+      success: true,
+      message: '兑换成功！已为您添加使用次数',
+      data: {
+        evaluationAdded: validCode.evaluation,
+        optimizationAdded: validCode.optimization,
+        code: code,
+        rewardType: '次数礼包',
+        description: validCode.description
+      },
+      timestamp: new Date().toISOString()
+    } as RedeemResponse);
+
+  } catch (error) {
+    console.error('兑换码 API 错误:', error);
+    
+    // 根据错误类型返回适当的错误响应
+    const errorMessage = error instanceof Error ? error.message : '未知错误';
+    const isJsonError = errorMessage.includes('JSON') || errorMessage.includes('Unexpected token');
+    
+    return NextResponse.json(
+      { 
+        success: false,
+        error: '兑换服务暂时不可用',
+        message: isJsonError ? '请求格式错误，请检查输入' : '服务器内部错误，请稍后重试',
+        details: errorMessage,
+        timestamp: new Date().toISOString()
+      } as RedeemResponse,
+      { status: isJsonError ? 400 : 500 }
+    );
+  }
+}
+
+/**
+ * GET 请求处理函数 - 用于测试 API 是否可用
+ */
+export async function GET() {
+  return NextResponse.json({
+    success: true,
+    message: '兑换码 API 已就绪',
+    version: '1.0.0',
+    status: '运行中',
+    endpoints: {
+      POST: '/api/redeem',
+      description: '兑换码验证和奖励发放',
+      requestFormat: {
+        code: 'string (兑换码)'
+      },
+      responseFormat: {
+        success: 'boolean',
+        message: 'string',
+        data: {
+          evaluationAdded: 'number',
+          optimizationAdded: 'number',
+          code: 'string',
+          rewardType: 'string',
+          description: 'string'
+        },
+        timestamp: 'string'
+      }
+    },
+    validCodes: Object.keys(VALID_CODES).map(code => ({
+      code,
+      ...VALID_CODES[code]
+    })),
+    features: [
+      '兑换码验证',
+      '奖励次数发放',
+      '使用次数限制',
+      '错误友好提示'
+    ],
+    note: '当前为演示版本，生产环境建议使用数据库存储兑换码使用记录'
+  });
+}
+
+// 其他 HTTP 方法不支持
+export async function PUT() {
+  return NextResponse.json({ 
+    success: false,
+    error: '方法不支持',
+    allowedMethods: ['GET', 'POST']
+  }, { status: 405 });
+}
+
+export async function DELETE() {
+  return NextResponse.json({ 
+    success: false,
+    error: '方法不支持',
+    allowedMethods: ['GET', 'POST']
+  }, { status: 405 });
+}
+
+export async function PATCH() {
+  return NextResponse.json({ 
+    success: false,
+    error: '方法不支持', 
+    allowedMethods: ['GET', 'POST']
+  }, { status: 405 });
+}

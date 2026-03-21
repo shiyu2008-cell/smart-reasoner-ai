@@ -1,0 +1,25 @@
+# Browser support configuration for autoprefixer
+# Targets modern browsers with last 2 versions and reasonable market share
+
+# Modern browsers (last 2 versions)
+last 2 versions
+
+# Browser market share > 0.5%
+> 0.5%
+
+# Maintain support for iOS and Safari
+ios_saf 15
+
+# Keep IE out (not supported)
+not dead
+not ie 11
+not ie_mob 11
+
+# Additional coverage for specific browsers
+chrome 90
+edge 90
+firefox 88
+safari 15
+opera 76
+android 4.4
+ios 15

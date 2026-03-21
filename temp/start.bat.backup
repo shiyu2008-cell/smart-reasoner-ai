@@ -1,0 +1,77 @@
+@echo off
+chcp 65001 >nul
+echo ========================================
+echo AI Resume Optimizer - Quick Start
+echo ========================================
+echo.
+
+REM Check Node.js installation
+where node >nul 2>nul
+if %errorlevel% neq 0 (
+    echo [ERROR] Node.js not found. Please install Node.js first.
+    pause
+    exit /b 1
+)
+
+REM Check npm installation
+where npm >nul 2>nul
+if %errorlevel% neq 0 (
+    echo [ERROR] npm not found. Please install Node.js first.
+    pause
+    exit /b 1
+)
+
+echo [1/3] Cleaning up lock files...
+if exist ".next\dev\lock" (
+    echo Deleting lock file...
+    del /f /q ".next\dev\lock" >nul 2>nul
+    echo Lock file deleted.
+) else (
+    echo No lock file found.
+)
+
+echo [2/3] Checking dependencies...
+if not exist "node_modules" (
+    echo node_modules not found. Installing dependencies...
+    call npm.cmd install
+    if %errorlevel% neq 0 (
+        echo [ERROR] Failed to install dependencies.
+        pause
+        exit /b 1
+    )
+    echo Dependencies installed successfully.
+) else (
+    echo Dependencies already installed.
+)
+
+echo [3/3] Starting development server...
+echo Server will open at: http://localhost:3000
+echo Press Ctrl+C to stop the server.
+echo.
+
+set NODE_ENV=development
+set RETRY_COUNT=0
+
+:start_server
+call npm.cmd run dev
+if %errorlevel% neq 0 (
+    echo [ERROR] Failed to start development server.
+    if %RETRY_COUNT% equ 0 (
+        echo.
+        echo Attempting to clear Turbopack cache and retry...
+        if exist ".next" (
+            echo Deleting .next cache directory...
+            rmdir /s /q ".next" >nul 2>nul
+            echo Cache cleared.
+        )
+        set RETRY_COUNT=1
+        goto start_server
+    )
+    echo.
+    echo Possible solutions:
+    echo 1. Check if port 3000 is occupied
+    echo 2. Try running manually: npm.cmd run dev
+    echo 3. Clear cache: del /f /q .next /s /q
+    pause
+    exit /b 1
+)
