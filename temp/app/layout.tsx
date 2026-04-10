@@ -8,11 +8,13 @@ import "./globals.css";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: 'swap',
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -32,7 +34,7 @@ function Footer() {
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/95 to-primary/3">
         {/* 微粒子背景 */}
         <div className="absolute inset-0 opacity-30">
-          {Array.from({ length: 20 }).map((_, i) => {
+          {Array.from({ length: 10 }).map((_, i) => {
             // 使用伪随机数生成器避免纯度错误
             const seed = i * 100;
             const pseudoRandom = (offset: number) => {
@@ -49,7 +51,7 @@ function Footer() {
             return (
               <div
                 key={`footer-particle-${i}`}
-                className="absolute rounded-full animate-particle-float-random"
+                className="absolute rounded-full animate-particle-float-random particle-optimized"
                 style={{
                   '--float-x': `${floatX}px`,
                   '--float-y': `${floatY}px`,
@@ -229,7 +231,7 @@ function Footer() {
                 
                 {/* 粒子效果 */}
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                  {Array.from({ length: 3 }).map((_, i) => {
+                  {Array.from({ length: 2 }).map((_, i) => {
                     // 使用伪随机数生成器避免纯度错误
                     const seed = i * 50;
                     const pseudoRandom = (offset: number) => {
@@ -241,7 +243,7 @@ function Footer() {
                     return (
                       <div
                         key={`button-particle-${i}`}
-                        className="absolute rounded-full animate-particle-float-random"
+                        className="absolute rounded-full animate-particle-float-random particle-optimized"
                         style={{
                           '--float-x': `${floatX}px`,
                           '--float-y': `${floatY}px`,
@@ -331,7 +333,7 @@ function Footer() {
             
             {/* 微粒子效果 */}
             <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full h-1">
-              {Array.from({ length: 5 }).map((_, i) => {
+              {Array.from({ length: 3 }).map((_, i) => {
                 // 使用伪随机数生成器避免纯度错误
                 const seed = i * 150;
                 const pseudoRandom = (offset: number) => {
@@ -346,7 +348,7 @@ function Footer() {
                 return (
                   <div
                     key={`footer-dot-${i}`}
-                    className="absolute bottom-0 rounded-full bg-gradient-to-r from-primary to-accent animate-particle-float-random"
+                    className="absolute bottom-0 rounded-full bg-gradient-to-r from-primary to-accent animate-particle-float-random particle-optimized"
                     style={{
                       '--float-x': `${floatX}px`,
                       '--float-y': `${floatY}px`,

@@ -25,11 +25,36 @@ export type User = Session extends { user: infer U } ? U : never;
 export function useAuth() {
   const { data: session, isPending, error } = useSession();
   
+  // 过滤网络中止错误，减少控制台噪音
+  const filteredError = (() => {
+    if (!error) return null;
+    
+    const errorMessage = error.message?.toLowerCase() || '';
+    const errorString = error.toString().toLowerCase();
+    
+    // 检查是否是网络中止/取消错误
+    const isNetworkAbortError = 
+      errorMessage.includes('aborted') ||
+      errorMessage.includes('canceled') ||
+      errorMessage.includes('cancelled') ||
+      errorMessage.includes('network error') ||
+      errorMessage.includes('fetch failed') ||
+      errorString.includes('aborted') ||
+      errorString.includes('canceled') ||
+      errorString.includes('cancelled') ||
+      errorString.includes('network error') ||
+      errorString.includes('typeerror: failed to fetch');
+    
+    // 如果是网络中止错误，静默处理
+    // 保留真正的认证错误（如401未授权、403禁止访问等）
+    return isNetworkAbortError ? null : error;
+  })();
+  
   return {
     user: session?.user,
     session,
     isLoading: isPending,
-    error,
+    error: filteredError,
     isAuthenticated: !!session?.user,
     signIn: authClient.signIn.email,
     signUp: authClient.signUp.email,

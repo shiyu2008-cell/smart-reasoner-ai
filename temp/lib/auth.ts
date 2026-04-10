@@ -1,10 +1,10 @@
 import { betterAuth } from "better-auth";
-import { memoryAdapter } from "better-auth/adapters/memory";
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET!,
   baseURL: process.env.BETTER_AUTH_URL!,
-  database: memoryAdapter({ users: [], sessions: [] }),
+  origin: true,
+  trustedOrigins: ["http://localhost:3000", "http://172.18.0.1:3000"],
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,

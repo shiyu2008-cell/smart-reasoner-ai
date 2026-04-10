@@ -91,7 +91,7 @@
   --secondary: oklch(0.85 0.15 300);
   --secondary-foreground: oklch(0.99 0 0);
   --muted: oklch(0.97 0.01 260);
-  --muted-foreground: oklch(0.55 0.05 260);
+  --muted-foreground: oklch(0.45 0.05 260);
   /* 强调色：青色，代表科技与未来感 */
   --accent: oklch(0.65 0.18 200);
   --accent-foreground: oklch(0.99 0 0);
@@ -126,7 +126,7 @@
   --secondary: oklch(0.25 0.05 300);
   --secondary-foreground: oklch(0.98 0.01 260);
   --muted: oklch(0.22 0.02 260);
-  --muted-foreground: oklch(0.75 0.05 260);
+  --muted-foreground: oklch(0.85 0.05 260);
   --accent: oklch(0.35 0.12 200);
   --accent-foreground: oklch(0.98 0.01 260);
   --destructive: oklch(0.7 0.25 30);
@@ -607,8 +607,8 @@
 
   /* 小尺寸触摸目标优化 */
   .touch-target-sm {
-    min-height: 36px;
-    min-width: 36px;
+    min-height: 44px;
+    min-width: 44px;
   }
 
   /* 禁用文本选择优化 */
@@ -708,6 +708,30 @@
     .hover-lift:hover {
       transform: translateY(-4px);
       box-shadow: var(--shadow-soft);
+    }
+  }
+
+  /* 触摸设备优化 - 增大点击区域，减少悬停效果 */
+  @media (hover: none) and (pointer: coarse) {
+    button,
+    [role="button"],
+    a[href],
+    input[type="submit"],
+    input[type="button"],
+    input[type="reset"],
+    select {
+      min-height: 48px;
+      padding: 12px 16px;
+    }
+    
+    /* 禁用悬停效果，启用活动状态反馈 */
+    .hover-lift:hover {
+      transform: none;
+    }
+    
+    /* 增强触摸反馈 */
+    .touch-feedback:active {
+      transform: scale(0.95);
     }
   }
 }
@@ -917,6 +941,12 @@
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.1'/%3E%3C/svg%3E");
   }
 
+  .bg-gradient-noise {
+    background-image: linear-gradient(to bottom right, var(--background), var(--background)), 
+                      url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+    background-blend-mode: overlay;
+  }
+
   .bg-grid {
     background-image: linear-gradient(to right, var(--border) 1px, transparent 1px),
                       linear-gradient(to bottom, var(--border) 1px, transparent 1px);
@@ -927,6 +957,11 @@
   .touch-feedback {
     position: relative;
     overflow: hidden;
+    transition: transform 0.2s var(--easing-gentle);
+  }
+  
+  .touch-feedback:active {
+    transform: scale(0.98);
   }
 
   .touch-feedback::after {

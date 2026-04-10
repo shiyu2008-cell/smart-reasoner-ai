@@ -35,6 +35,7 @@ export default function DashboardPage() {
   const [evaluationError, setEvaluationError] = useState<string | null>(null);
   const [lastEvaluationInputHash, setLastEvaluationInputHash] = useState<string>("");
   const [lastEvaluatedHash, setLastEvaluatedHash] = useState<string>(""); // 上一次成功评估时的文本哈希
+  const [lastOptimizedHash, setLastOptimizedHash] = useState<string>(""); // 上一次成功优化时的文本哈希
 
   // 评估流程控制状态
   const [hasEvaluated, setHasEvaluated] = useState<boolean>(false);
@@ -56,40 +57,168 @@ export default function DashboardPage() {
 
   // 加载保存的使用次数
   useEffect(() => {
-    const savedEvaluation = sessionStorage.getItem('freeRegistrationEvaluationRemaining');
-    const savedOptimization = sessionStorage.getItem('freeRegistrationOptimizationRemaining');
+    if (isAuthLoading) return; // 等待认证状态加载完成
     
-    if (savedEvaluation !== null) {
-      setEvaluationRemaining(parseInt(savedEvaluation, 10));
-    } else {
-      // 无登录时也能有两次完整使用次数
+    // 基于用户ID构建存储key，实现数据隔离
+    const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+    const evalKey = `evaluationRemaining_${userId}`;
+    const optKey = `optimizationRemaining_${userId}`;
+    
+    console.log('加载使用次数，用户ID:', userId, '认证状态:', isAuthenticated);
+    
+    try {
+      const savedEvaluation = localStorage.getItem(evalKey);
+      const savedOptimization = localStorage.getItem(optKey);
+      
+      console.log('从localStorage加载的值:', { savedEvaluation, savedOptimization });
+      
+      // 对于未登录用户，检查是否已经给予过初始次数
+      if (!isAuthenticated) {
+        const initialCreditsGivenKey = 'anonymous_initial_credits_given';
+        const initialCreditsGiven = localStorage.getItem(initialCreditsGivenKey);
+        
+        if (initialCreditsGiven === 'true') {
+          // 已经给予过初始次数，只加载保存的值（如果没有保存的值，则视为0）
+          console.log('未登录用户已获得初始次数，不重新初始化');
+          
+          // 处理评估次数
+          if (savedEvaluation !== null) {
+            const evalValue = parseInt(savedEvaluation, 10);
+            if (!isNaN(evalValue) && evalValue >= 0) {
+              setEvaluationRemaining(evalValue);
+              console.log('设置评估次数:', evalValue);
+            } else {
+              // 值无效，设置为0（次数已用完）
+              console.warn('评估次数无效，设置为0');
+              setEvaluationRemaining(0);
+              localStorage.setItem(evalKey, '0');
+            }
+          } else {
+            // 没有保存的值，设置为0（次数已用完）
+            console.log('无保存的评估次数，设置为0');
+            setEvaluationRemaining(0);
+            localStorage.setItem(evalKey, '0');
+          }
+          
+          // 处理优化次数
+          if (savedOptimization !== null) {
+            const optValue = parseInt(savedOptimization, 10);
+            if (!isNaN(optValue) && optValue >= 0) {
+              setOptimizationRemaining(optValue);
+              console.log('设置优化次数:', optValue);
+            } else {
+              // 值无效，设置为0（次数已用完）
+              console.warn('优化次数无效，设置为0');
+              setOptimizationRemaining(0);
+              localStorage.setItem(optKey, '0');
+            }
+          } else {
+            // 没有保存的值，设置为0（次数已用完）
+            console.log('无保存的优化次数，设置为0');
+            setOptimizationRemaining(0);
+            localStorage.setItem(optKey, '0');
+          }
+        } else {
+          // 首次使用，给予初始2次
+          console.log('未登录用户首次使用，给予初始2次');
+          setEvaluationRemaining(2);
+          setOptimizationRemaining(2);
+          localStorage.setItem(evalKey, '2');
+          localStorage.setItem(optKey, '2');
+          localStorage.setItem(initialCreditsGivenKey, 'true');
+        }
+      } else {
+        // 登录用户：加载保存的值或使用默认值
+        // 处理评估次数
+        if (savedEvaluation !== null) {
+          const evalValue = parseInt(savedEvaluation, 10);
+          if (!isNaN(evalValue) && evalValue >= 0) {
+            setEvaluationRemaining(evalValue);
+            console.log('设置评估次数:', evalValue);
+          } else {
+            // 值无效，设置为默认值
+            console.warn('评估次数无效，重置为默认值');
+            setEvaluationRemaining(2);
+            localStorage.setItem(evalKey, '2');
+          }
+        } else {
+          // 无保存的评估次数，设置为默认值2
+          console.log('无保存的评估次数，设置为默认值2');
+          setEvaluationRemaining(2);
+          localStorage.setItem(evalKey, '2');
+        }
+        
+        // 处理优化次数
+        if (savedOptimization !== null) {
+          const optValue = parseInt(savedOptimization, 10);
+          if (!isNaN(optValue) && optValue >= 0) {
+            setOptimizationRemaining(optValue);
+            console.log('设置优化次数:', optValue);
+          } else {
+            // 值无效，设置为默认值
+            console.warn('优化次数无效，重置为默认值');
+            setOptimizationRemaining(2);
+            localStorage.setItem(optKey, '2');
+          }
+        } else {
+          // 无保存的优化次数，设置为默认值2
+          console.log('无保存的优化次数，设置为默认值2');
+          setOptimizationRemaining(2);
+          localStorage.setItem(optKey, '2');
+        }
+      }
+    } catch (error) {
+      console.error('加载使用次数时出错:', error);
+      // 出错时设置为默认值
       setEvaluationRemaining(2);
-    }
-    
-    if (savedOptimization !== null) {
-      setOptimizationRemaining(parseInt(savedOptimization, 10));
-    } else {
-      // 无登录时也能有两次完整使用次数
       setOptimizationRemaining(2);
     }
     
     setIsLoadingCounts(false); // 加载完成
-  }, []);
+  }, [isAuthenticated, isAuthLoading]);
 
-  // 保存使用次数到sessionStorage
+  // 保存使用次数到localStorage
   useEffect(() => {
-    sessionStorage.setItem('freeRegistrationEvaluationRemaining', evaluationRemaining.toString());
-  }, [evaluationRemaining]);
+    if (typeof window === 'undefined') return;
+    if (isAuthLoading) return; // 等待认证状态确定
+    
+    const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+    const evalKey = `evaluationRemaining_${userId}`;
+    
+    try {
+      console.log('保存评估次数:', evaluationRemaining, '到key:', evalKey);
+      localStorage.setItem(evalKey, evaluationRemaining.toString());
+    } catch (error) {
+      console.error('保存评估次数时出错:', error);
+    }
+  }, [evaluationRemaining, isAuthenticated, isAuthLoading]);
 
   useEffect(() => {
-    sessionStorage.setItem('freeRegistrationOptimizationRemaining', optimizationRemaining.toString());
-  }, [optimizationRemaining]);
+    if (typeof window === 'undefined') return;
+    if (isAuthLoading) return; // 等待认证状态确定
+    
+    const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+    const optKey = `optimizationRemaining_${userId}`;
+    
+    try {
+      console.log('保存优化次数:', optimizationRemaining, '到key:', optKey);
+      localStorage.setItem(optKey, optimizationRemaining.toString());
+    } catch (error) {
+      console.error('保存优化次数时出错:', error);
+    }
+  }, [optimizationRemaining, isAuthenticated, isAuthLoading]);
 
   // 加载保存的简历数据
   useEffect(() => {
-    const savedResume = sessionStorage.getItem('dashboardResume');
-    const savedJobDescription = sessionStorage.getItem('dashboardJobDescription');
-    const savedOptimizedResult = sessionStorage.getItem('dashboardOptimizedResult');
+    // 基于用户ID构建存储key，实现数据隔离
+    const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+    const resumeKey = `dashboardResume_${userId}`;
+    const jobDescKey = `dashboardJobDescription_${userId}`;
+    const resultKey = `dashboardOptimizedResult_${userId}`;
+    
+    const savedResume = localStorage.getItem(resumeKey);
+    const savedJobDescription = localStorage.getItem(jobDescKey);
+    const savedOptimizedResult = localStorage.getItem(resultKey);
     
     if (savedResume !== null) {
       setResume(savedResume);
@@ -100,20 +229,35 @@ export default function DashboardPage() {
     if (savedOptimizedResult !== null) {
       setOptimizedResult(savedOptimizedResult);
     }
-  }, []);
+  }, [isAuthenticated]);
 
-  // 保存简历数据到sessionStorage
+  // 保存简历数据到localStorage
   useEffect(() => {
-    sessionStorage.setItem('dashboardResume', resume);
-  }, [resume]);
+    if (typeof window === 'undefined') return;
+    
+    const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+    const resumeKey = `dashboardResume_${userId}`;
+    
+    localStorage.setItem(resumeKey, resume);
+  }, [resume, isAuthenticated]);
 
   useEffect(() => {
-    sessionStorage.setItem('dashboardJobDescription', jobDescription);
-  }, [jobDescription]);
+    if (typeof window === 'undefined') return;
+    
+    const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+    const jobDescKey = `dashboardJobDescription_${userId}`;
+    
+    localStorage.setItem(jobDescKey, jobDescription);
+  }, [jobDescription, isAuthenticated]);
 
   useEffect(() => {
-    sessionStorage.setItem('dashboardOptimizedResult', optimizedResult);
-  }, [optimizedResult]);
+    if (typeof window === 'undefined') return;
+    
+    const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+    const resultKey = `dashboardOptimizedResult_${userId}`;
+    
+    localStorage.setItem(resultKey, optimizedResult);
+  }, [optimizedResult, isAuthenticated]);
 
   // 字符计数（可选功能）
   const resumeCharCount = resume.length;
@@ -336,9 +480,9 @@ export default function DashboardPage() {
       return;
     }
 
-    // 检查文本是否实质性修改
+    // 检查文本是否实质性修改（仅当已经优化过时检查）
     const currentHash = calculateInputHash(resume, jobDescription);
-    if (lastEvaluatedHash && currentHash === lastEvaluatedHash) {
+    if (lastOptimizedHash && currentHash === lastOptimizedHash) {
       setError("文本未发生改变，请修改文本后再点击优化按钮");
       return;
     }
@@ -385,14 +529,69 @@ export default function DashboardPage() {
       if (result.success) {
         setRedeemSuccess(result.message || '兑换成功！');
         // 更新本地使用次数 - 添加数据验证
+        let addedEvaluation = 0;
+        let addedOptimization = 0;
+        
         if (result.data?.evaluationAdded && typeof result.data.evaluationAdded === 'number') {
-          const added = Math.max(0, Math.min(result.data.evaluationAdded, 100)); // 限制范围
-          setEvaluationRemaining(prev => prev + added);
+          addedEvaluation = Math.max(0, Math.min(result.data.evaluationAdded, 100)); // 限制范围
+          setEvaluationRemaining(prev => prev + addedEvaluation);
         }
         if (result.data?.optimizationAdded && typeof result.data.optimizationAdded === 'number') {
-          const added = Math.max(0, Math.min(result.data.optimizationAdded, 100)); // 限制范围
-          setOptimizationRemaining(prev => prev + added);
+          addedOptimization = Math.max(0, Math.min(result.data.optimizationAdded, 100)); // 限制范围
+          setOptimizationRemaining(prev => prev + addedOptimization);
         }
+        
+        // 保存兑换记录到localStorage
+        try {
+          // 确定兑换类型
+          let recordType: 'evaluation' | 'optimization' | 'premium' = 'premium';
+          let amount = 0;
+          
+          if (addedEvaluation > 0 && addedOptimization === 0) {
+            recordType = 'evaluation';
+            amount = addedEvaluation;
+          } else if (addedOptimization > 0 && addedEvaluation === 0) {
+            recordType = 'optimization';
+            amount = addedOptimization;
+          } else if (addedEvaluation > 0 && addedOptimization > 0) {
+            recordType = 'premium';
+            amount = addedEvaluation + addedOptimization; // 总数
+          }
+          
+          const redemptionRecord = {
+            code: redeemCode.trim(),
+            type: recordType,
+            amount: amount,
+            redeemedAt: new Date().toISOString(),
+            // 可选字段，用于记录详细信息
+            evaluationAdded: addedEvaluation,
+            optimizationAdded: addedOptimization,
+            description: result.data?.description || '兑换码奖励'
+          };
+          
+          // 基于用户ID构建存储key，实现数据隔离
+          const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+          const historyKey = `redemptionHistory_${userId}`;
+          
+          // 获取现有兑换记录
+          const existingHistory = localStorage.getItem(historyKey);
+          let historyArray = existingHistory ? JSON.parse(existingHistory) : [];
+          
+          // 添加新记录
+          historyArray.push(redemptionRecord);
+          
+          // 保存更新后的记录（限制最多保留50条记录）
+          if (historyArray.length > 50) {
+            historyArray = historyArray.slice(-50);
+          }
+          
+          localStorage.setItem(historyKey, JSON.stringify(historyArray));
+          
+          console.log('兑换记录已保存:', redemptionRecord);
+        } catch (err) {
+          console.error('保存兑换记录失败:', err);
+        }
+        
         // 清空输入
         setRedeemCode("");
       } else {
@@ -422,6 +621,9 @@ export default function DashboardPage() {
     setError(null);
     setOptimizedResult(""); // 清空之前的结果
 
+    // 计算当前输入哈希，用于记录优化时的文本状态
+    const currentHash = calculateInputHash(resume, jobDescription);
+    
     try {
       // 重置所有结果状态
       setOptimizedResult("");
@@ -465,6 +667,8 @@ export default function DashboardPage() {
         const { done, value } = await reader.read();
         if (done) {
           setAiState('completed');
+          // 记录优化完成时的文本哈希，防止重复优化相同文本
+          setLastOptimizedHash(currentHash);
           // 优化完成，无需解析JSON评分数据
           break;
         }
@@ -511,7 +715,7 @@ export default function DashboardPage() {
   const isFormValid = resume.trim().length > 0 && jobDescription.trim().length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/10">
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/5 animate-gradient-shift bg-[length:400%_400%]">
       {/* 页面标题 */}
       <div className="mb-8 md:mb-12 text-center animate-fade-in">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl gradient-text">
@@ -535,7 +739,7 @@ export default function DashboardPage() {
                 <div className="relative">
                   <div className={`flex items-center justify-center h-10 w-10 rounded-full border-2 ${
                     index < 2 
-                      ? "bg-gradient-to-br from-primary to-accent border-primary text-primary-foreground" 
+                      ? "bg-gradient-to-br from-primary to-accent border-primary text-primary-foreground animate-glow" 
                       : "bg-background border-muted-foreground/30 text-muted-foreground"
                   } font-semibold transition-all duration-300`}>
                     {item.step}
@@ -582,7 +786,7 @@ export default function DashboardPage() {
       <div className="container-responsive max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* 左侧：简历输入区 */}
-          <div className="space-y-6 animate-slide-up">
+          <div className="space-y-6 animate-slide-up glass-effect rounded-2xl border border-white/20 p-6 shadow-lg backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
@@ -609,7 +813,7 @@ export default function DashboardPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="group flex items-center gap-2"
+                className="group flex items-center gap-2 touch-target-sm touch-feedback"
                 onClick={() => {
                   // TODO: 实现文件上传功能
                   alert('文件上传功能开发中...');
@@ -637,6 +841,8 @@ export default function DashboardPage() {
                 onChange={handleResumeChange}
                 className="min-h-[400px] resize-y font-mono text-sm"
                 disabled={isLoading}
+                aria-label="简历内容输入框"
+                aria-describedby="resume-help-text"
               />
               
               {validationErrors.resume && (
@@ -646,7 +852,7 @@ export default function DashboardPage() {
                 </div>
               )}
               
-              <div className="text-xs text-muted-foreground space-y-1">
+              <div id="resume-help-text" className="text-xs text-muted-foreground space-y-1">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-3 w-3" />
                   <span>支持中文、英文等多种语言</span>
@@ -664,7 +870,7 @@ export default function DashboardPage() {
           </div>
 
           {/* 右侧：JD输入区 */}
-          <div className="space-y-6 animate-slide-up" style={{ animationDelay: "100ms" }}>
+          <div className="space-y-6 animate-slide-up glass-effect rounded-2xl border border-white/20 p-6 shadow-lg backdrop-blur-sm" style={{ animationDelay: "100ms" }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-secondary to-accent">
@@ -691,7 +897,7 @@ export default function DashboardPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="group flex items-center gap-2"
+                className="group flex items-center gap-2 touch-target-sm touch-feedback"
                 onClick={() => {
                   // TODO: 实现文件上传功能
                   alert('职位描述文件上传功能开发中...');
@@ -722,6 +928,8 @@ export default function DashboardPage() {
                 onChange={handleJobDescriptionChange}
                 className="min-h-[400px] resize-y font-mono text-sm"
                 disabled={isLoading}
+                aria-label="职位描述输入框"
+                aria-describedby="job-description-help-text"
               />
               
               {validationErrors.jobDescription && (
@@ -731,7 +939,7 @@ export default function DashboardPage() {
                 </div>
               )}
               
-              <div className="text-xs text-muted-foreground space-y-1">
+              <div id="job-description-help-text" className="text-xs text-muted-foreground space-y-1">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-3 w-3" />
                   <span>可从招聘网站复制完整的职位描述</span>
@@ -759,15 +967,17 @@ export default function DashboardPage() {
 
           {/* 按钮容器 */}
           <div className="relative z-10 flex justify-center">
-            <div className="bg-background px-6 py-4 rounded-2xl border shadow-soft animate-pulse-subtle">
+            <div className="glass-effect px-6 py-4 rounded-2xl border border-white/20 shadow-soft animate-pulse-subtle backdrop-blur-sm">
               <Button
                 size="lg"
                 onClick={handleEvaluateClick}
                 disabled={!isFormValid || isLoading || isEvaluating}
                 className={cn(
-                  "group relative h-14 px-10 bg-gradient-to-r from-primary to-accent text-lg font-semibold shadow-glow hover:shadow-lg hover:shadow-primary/30 transition-all duration-300",
+                  "group relative h-14 px-10 bg-gradient-to-r from-primary to-accent text-lg font-semibold shadow-glow hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 touch-feedback",
                   (!isFormValid || isLoading || isEvaluating) && "opacity-50 cursor-not-allowed"
                 )}
+                aria-busy={isEvaluating || isLoading}
+                aria-live="polite"
               >
                 {isEvaluating ? (
                   <div className="flex items-center justify-center gap-2">
@@ -870,16 +1080,18 @@ export default function DashboardPage() {
                         type="text"
                         placeholder="万柏666"
                         value={redeemCode}
-                        readOnly
+                        onChange={(e) => setRedeemCode(e.target.value)}
                         disabled={isRedeeming}
                         className="flex-1"
                         autoComplete="one-time-code"
+                        aria-label="兑换码输入框"
                       />
                       <Button
                         onClick={handleRedeemCode}
                         disabled={isRedeeming || !redeemCode.trim()}
                         size="sm"
-                        className="whitespace-nowrap"
+                        className="whitespace-nowrap touch-feedback"
+                        aria-label="兑换兑换码"
                       >
                         {isRedeeming ? (
                           <>
@@ -952,7 +1164,7 @@ export default function DashboardPage() {
 
         {/* 简历智能评估结果 */}
         {(evaluationResult || isEvaluating || evaluationError) && (
-          <div className="mt-12 animate-fade-in">
+          <div className="mt-12 animate-fade-in glass-effect rounded-2xl border border-white/20 p-6 shadow-lg backdrop-blur-sm" role="region" aria-label="简历评估结果">
             <div className="flex items-center gap-3 mb-6">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
                 <Sparkles className="h-5 w-5 text-white" />
@@ -967,14 +1179,16 @@ export default function DashboardPage() {
               </div>
             </div>
             
-            <EvaluationDisplay
-              evaluation={evaluationResult!}
-              isLoading={isEvaluating}
-              error={evaluationError}
-              onOptimizeClick={handleOptimizeClick}
-              compact={false}
-              className="shadow-lg border-2 border-purple-200/30 dark:border-purple-800/30 rounded-2xl overflow-hidden"
-            />
+            <div aria-live="polite" aria-atomic="true">
+              <EvaluationDisplay
+                evaluation={evaluationResult!}
+                isLoading={isEvaluating}
+                error={evaluationError}
+                onOptimizeClick={handleOptimizeClick}
+                compact={false}
+                className="shadow-lg border-2 border-purple-200/30 dark:border-purple-800/30 rounded-2xl overflow-hidden"
+              />
+            </div>
             
             <div className="mt-6 text-center text-sm text-muted-foreground">
               <p>
@@ -986,7 +1200,8 @@ export default function DashboardPage() {
 
         {/* AI 优化结果展示 */}
         {(aiState !== 'idle' || optimizedResult) && (
-          <div className="mt-12 animate-slide-up">
+          <div className="mt-12 animate-slide-up glass-effect rounded-2xl border border-white/20 p-6 shadow-lg backdrop-blur-sm" role="region" aria-label="AI优化结果">
+            <div aria-live="polite" aria-atomic="true">
             {/* 评分与分析面板 */}
             {(evaluationResult?.score !== undefined || (evaluationResult?.weaknesses?.length ?? 0) > 0 || evaluationResult?.analysis) && (
               <div className="mb-6 p-6 bg-gradient-to-r from-primary/5 to-accent/5 rounded-xl border border-primary/20 shadow-sm">
@@ -1093,11 +1308,12 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
+            </div>
           </div>
         )}
 
         {/* 使用说明 */}
-        <div className="mt-16 p-6 rounded-2xl border bg-gradient-to-r from-primary/5 to-accent/5 animate-fade-in">
+        <div className="mt-16 p-6 rounded-2xl border border-white/20 glass-effect bg-gradient-to-r from-primary/5 to-accent/5 animate-fade-in backdrop-blur-sm">
           <h3 className="text-lg font-semibold mb-4">如何使用工作台？</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">

@@ -44,26 +44,36 @@ export default function SettingsPage() {
     if (typeof window === "undefined") return;
 
     try {
-      // 从sessionStorage读取剩余次数（与dashboard页面保持一致）
+      // 基于用户ID构建存储key，实现数据隔离
+      const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+      
+      // 从localStorage读取剩余次数（与dashboard页面保持一致）
+      const evalKey = `evaluationRemaining_${userId}`;
+      const optKey = `optimizationRemaining_${userId}`;
+      
       const evaluationRemaining = parseInt(
-        sessionStorage.getItem("freeRegistrationEvaluationRemaining") || "1",
+        localStorage.getItem(evalKey) || "2",
         10
       );
       const optimizationRemaining = parseInt(
-        sessionStorage.getItem("freeRegistrationOptimizationRemaining") || "1",
+        localStorage.getItem(optKey) || "2",
         10
       );
 
-      // 从localStorage读取使用历史
+      // 从localStorage读取使用历史（基于用户ID隔离）
+      const totalEvalKey = `totalEvaluations_${userId}`;
+      const totalOptKey = `totalOptimizations_${userId}`;
+      const lastUsedKey = `lastUsed_${userId}`;
+      
       const totalEvaluations = parseInt(
-        localStorage.getItem("totalEvaluations") || "0",
+        localStorage.getItem(totalEvalKey) || "0",
         10
       );
       const totalOptimizations = parseInt(
-        localStorage.getItem("totalOptimizations") || "0",
+        localStorage.getItem(totalOptKey) || "0",
         10
       );
-      const lastUsed = localStorage.getItem("lastUsed") || null;
+      const lastUsed = localStorage.getItem(lastUsedKey) || null;
 
       setUsageStats({
         evaluationRemaining,
@@ -85,7 +95,11 @@ export default function SettingsPage() {
     if (typeof window === "undefined") return;
 
     try {
-      const savedHistory = localStorage.getItem("redemptionHistory");
+      // 基于用户ID构建存储key，实现数据隔离
+      const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+      const historyKey = `redemptionHistory_${userId}`;
+      
+      const savedHistory = localStorage.getItem(historyKey);
       if (savedHistory) {
         const parsed = JSON.parse(savedHistory) as RedemptionHistory[];
         setRedemptionHistory(parsed);
@@ -115,7 +129,7 @@ export default function SettingsPage() {
         ];
         setRedemptionHistory(exampleHistory);
         // 保存示例数据以便演示
-        localStorage.setItem("redemptionHistory", JSON.stringify(exampleHistory));
+        localStorage.setItem(historyKey, JSON.stringify(exampleHistory));
       }
     } catch (err) {
       console.error("加载兑换码历史失败:", err);

@@ -79,9 +79,15 @@ export default function RegisterPage() {
           setSuccess(true);
           // 设置新用户注册福利：3次完整使用机会
           try {
-            // 设置评估和优化次数各3次
-            sessionStorage.setItem('freeRegistrationEvaluationRemaining', '3');
-            sessionStorage.setItem('freeRegistrationOptimizationRemaining', '3');
+            // 设置评估和优化次数各3次（使用localStorage持久化存储）
+            // 注册成功后用户已认证，使用'authenticated'作为用户ID
+            const userId = 'authenticated';
+            const evalKey = `evaluationRemaining_${userId}`;
+            const optKey = `optimizationRemaining_${userId}`;
+            
+            localStorage.setItem(evalKey, '3');
+            localStorage.setItem(optKey, '3');
+            
             // 标记用户已获得注册福利，防止重复获取
             localStorage.setItem('hasReceivedRegistrationBonus', 'true');
             console.log('新用户注册福利已设置：3次评估 + 3次优化');
