@@ -7,6 +7,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { optimizeResume, OptimizeResumeRequest } from '@/lib/ai-service';
+import { auth } from '@/lib/auth';
+import { deductCredits, CreditError } from '@/lib/credit-service';
 
 // 关闭默认的 body 解析，以便处理流式响应
 export const dynamic = 'force-dynamic';
@@ -20,6 +22,24 @@ export const runtime = 'nodejs'; // 或 'edge' 如果使用 Edge Runtime
  */
 export async function POST(request: NextRequest) {
   try {
+    // 验证用户会话
+    const session = await auth.api.getSession({
+      headers: Object.fromEntries(request.headers),
+    });
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: '未授权访问',
+          message: '请先登录后再使用优化服务'
+        },
+        { status: 401 }
+      );
+    }
+
+    const userId = session.user.id;
+    
     // 解析请求体
     const body: OptimizeResumeRequest = await request.json();
     
@@ -28,6 +48,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: '缺少必要字段：resume 和 jobDescription 不能为空' },
         { status: 400 }
+      );
+    }
+
+    // 验证内容长度（防止滥用）
+    if (body.resume.length > 10000) {
+      return NextResponse.json(
+        { error: '简历内容过长，请限制在10000字符以内' },
+        { status: 400 }
+      );
+    }
+    
+    if (body.jobDescription.length > 5000) {
+      return NextResponse.json(
+        { error: '职位描述过长，请限制在5000字符以内' },
+        { status: 400 }
+      );
+    }
+
+    console.log('简历优化API请求:', {
+      userId,
+      resumeLength: body.resume.length,
+      jobDescriptionLength: body.jobDescription.length,
+    });
+
+    // 扣减优化次数
+    const creditResult = await deductCredits(userId, 'optimize', 1);
+    
+    if (!creditResult.success) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: '次数不足',
+          message: creditResult.message || '优化次数不足，请购买套餐或等待重置',
+          remainingEvaluationCredits: creditResult.remainingEvaluationCredits,
+          remainingOptimizationCredits: creditResult.remainingOptimizationCredits
+        },
+        { status: 403 }
       );
     }
 
@@ -42,8 +99,8 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // 返回流式响应
-    return new Response(
+    // 返回流式响应，添加响应头包含剩余次数信息
+    const response = new Response(
       stream.pipeThrough(transformStream),
       {
         headers: {
@@ -51,12 +108,29 @@ export async function POST(request: NextRequest) {
           'Transfer-Encoding': 'chunked',
           'Cache-Control': 'no-cache, no-transform',
           'X-Content-Type-Options': 'nosniff',
+          'X-Remaining-Evaluation-Credits': creditResult.remainingEvaluationCredits.toString(),
+          'X-Remaining-Optimization-Credits': creditResult.remainingOptimizationCredits.toString(),
         },
       }
     );
 
+    return response;
+
   } catch (error) {
     console.error('简历优化 API 错误:', error);
+    
+    // 处理次数相关错误
+    if (error instanceof CreditError) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: '次数处理失败',
+          message: error.message,
+          code: error.code
+        },
+        { status: 403 }
+      );
+    }
     
     return NextResponse.json(
       { 

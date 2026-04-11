@@ -117,11 +117,11 @@ export default function HelpPage() {
 
   const contactMethods = [
     {
-      title: "电话支持",
-      description: "直接拨打电话咨询",
+      title: "微信支持",
+      description: "添加微信咨询",
       responseTime: "工作时间",
       icon: <MessageSquare className="h-5 w-5" />,
-      link: "tel:13522220541"
+      link: "weixin://dl/chat?13522220541"
     },
     {
       title: "邮箱支持",
@@ -186,12 +186,12 @@ export default function HelpPage() {
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-secondary/10 mb-4">
                 <MessageSquare className="h-6 w-6 text-secondary" />
               </div>
-              <CardTitle className="text-lg">电话支持</CardTitle>
-              <CardDescription>直接拨打电话咨询</CardDescription>
+              <CardTitle className="text-lg">微信支持</CardTitle>
+              <CardDescription>添加微信咨询</CardDescription>
             </CardHeader>
             <CardContent>
               <Button asChild variant="ghost" className="w-full">
-                <Link href="tel:13522220541">联系支持</Link>
+                <Link href="weixin://dl/chat?13522220541">联系支持</Link>
               </Button>
             </CardContent>
           </Card>

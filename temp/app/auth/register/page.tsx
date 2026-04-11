@@ -77,23 +77,8 @@ export default function RegisterPage() {
       {
         onSuccess: () => {
           setSuccess(true);
-          // 设置新用户注册福利：3次完整使用机会
-          try {
-            // 设置评估和优化次数各3次（使用localStorage持久化存储）
-            // 注册成功后用户已认证，使用'authenticated'作为用户ID
-            const userId = 'authenticated';
-            const evalKey = `evaluationRemaining_${userId}`;
-            const optKey = `optimizationRemaining_${userId}`;
-            
-            localStorage.setItem(evalKey, '3');
-            localStorage.setItem(optKey, '3');
-            
-            // 标记用户已获得注册福利，防止重复获取
-            localStorage.setItem('hasReceivedRegistrationBonus', 'true');
-            console.log('新用户注册福利已设置：3次评估 + 3次优化');
-          } catch (error) {
-            console.error('设置注册福利时出错:', error);
-          }
+          // 新用户将自动获得3次评估机会（通过数据库默认值设置）
+          console.log('新用户注册成功，已分配3次评估机会');
           // 延迟跳转到仪表板
           setTimeout(() => {
             router.push("/dashboard");
@@ -347,7 +332,7 @@ export default function RegisterPage() {
               <Link href="/legal/privacy" className="text-primary font-medium hover:text-primary/80 hover:underline underline-offset-2">
                 隐私政策
               </Link>
-              。注册后可立即获得3次完整使用机会。
+              。注册后可立即获得3次简历评估机会。
             </p>
           </div>
 
@@ -388,7 +373,7 @@ export default function RegisterPage() {
           </div>
           
           <p className="text-xs text-center text-muted-foreground/70">
-            注册后可立即获得3次完整使用机会，体验所有高级功能
+            注册后可立即获得3次简历评估机会
           </p>
         </CardFooter>
       </Card>

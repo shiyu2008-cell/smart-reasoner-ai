@@ -407,7 +407,7 @@ export default function Home() {
                   </Button>
                   <div className="text-center sm:text-left">
                     <p className="text-sm text-muted-foreground">
-                      免费注册 · 立即获得3次使用机会 · 立即体验AI优化
+                      免费注册 · 立即获得3次评估机会
                     </p>
                   </div>
                 </div>

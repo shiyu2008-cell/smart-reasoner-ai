@@ -202,7 +202,7 @@ function Footer() {
                     <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
                   </svg>
                 </div>
-                +86 400-123-4567
+                微信: 13522220541
               </li>
               <li className="text-muted-foreground flex items-center gap-3">
                 <div className="h-4 w-4 rounded bg-primary/10 flex items-center justify-center">
@@ -326,7 +326,9 @@ function Footer() {
               </span>
               <span className="block mt-2 px-3 py-1 rounded-full bg-background/30 border backdrop-blur-sm inline-flex items-center gap-2">
                 <span className="text-[10px]">🛡️</span>
-                <span>京ICP备2026008659号</span>
+                <a href="http://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                  京ICP备2026008659号
+                </a>
                 <span className="w-1 h-1 rounded-full bg-accent/50 animate-pulse-subtle" />
               </span>
             </div>

@@ -259,7 +259,7 @@ export default function TermsPage() {
             <ul className="list-none pl-0 space-y-1">
               <li>电子邮件：l83311420@outlook.com</li>
               <li>邮寄地址：无固定营业地址（个人经营）</li>
-              <li>电话：13522220541</li>
+              <li>微信：13522220541</li>
             </ul>
             <p className="mt-4">
               对于GDPR相关查询，您还可以联系我们的数据保护官：l83311420@outlook.com

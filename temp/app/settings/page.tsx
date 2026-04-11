@@ -88,7 +88,7 @@ export default function SettingsPage() {
     } finally {
       setIsLoadingStats(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // 加载兑换码历史
   useEffect(() => {
@@ -134,7 +134,7 @@ export default function SettingsPage() {
     } catch (err) {
       console.error("加载兑换码历史失败:", err);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // 处理退出登录
   const handleSignOut = async () => {

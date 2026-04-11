@@ -169,7 +169,7 @@ export default function QuickStartTutorialPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-4">
-                  注册后即可获得2次简历评估和1次AI优化机会
+                  注册后即可获得3次简历评估机会
                 </p>
                 <Button asChild className="w-full">
                   <Link href="/auth/register">开始免费注册</Link>

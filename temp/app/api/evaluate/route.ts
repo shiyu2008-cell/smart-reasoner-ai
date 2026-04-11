@@ -7,6 +7,8 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { evaluateResume, EvaluateResumeRequest } from '@/lib/ai-service';
+import { auth } from '@/lib/auth';
+import { deductCredits, CreditError } from '@/lib/credit-service';
 
 // 评估API需要动态处理
 export const dynamic = 'force-dynamic';
@@ -20,6 +22,24 @@ export const runtime = 'nodejs'; // 或 'edge' 如果使用 Edge Runtime
  */
 export async function POST(request: NextRequest) {
   try {
+    // 验证用户会话
+    const session = await auth.api.getSession({
+      headers: Object.fromEntries(request.headers),
+    });
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: '未授权访问',
+          message: '请先登录后再使用评估服务'
+        },
+        { status: 401 }
+      );
+    }
+
+    const userId = session.user.id;
+    
     // 解析请求体
     const body: EvaluateResumeRequest = await request.json();
     
@@ -47,23 +67,58 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('简历评估API请求:', {
+      userId,
       resumeLength: body.resume.length,
       jobDescriptionLength: body.jobDescription.length,
       hasConfig: !!body.config
     });
 
+    // 扣减评估次数
+    const creditResult = await deductCredits(userId, 'evaluate', 1);
+    
+    if (!creditResult.success) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: '次数不足',
+          message: creditResult.message || '评估次数不足，请购买套餐或等待重置',
+          remainingEvaluationCredits: creditResult.remainingEvaluationCredits,
+          remainingOptimizationCredits: creditResult.remainingOptimizationCredits
+        },
+        { status: 403 }
+      );
+    }
+
     // 获取评估结果
     const evaluationResult = await evaluateResume(body);
 
-    // 返回结构化评估结果
+    // 返回结构化评估结果，包含剩余次数信息
     return NextResponse.json({
       success: true,
       data: evaluationResult,
+      credits: {
+        remainingEvaluationCredits: creditResult.remainingEvaluationCredits,
+        remainingOptimizationCredits: creditResult.remainingOptimizationCredits,
+        message: `评估成功，剩余 ${creditResult.remainingEvaluationCredits} 次评估次数`
+      },
       timestamp: new Date().toISOString()
     });
 
   } catch (error) {
     console.error('简历评估 API 错误:', error);
+    
+    // 处理次数相关错误
+    if (error instanceof CreditError) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: '次数处理失败',
+          message: error.message,
+          code: error.code
+        },
+        { status: 403 }
+      );
+    }
     
     // 根据错误类型返回适当的错误响应
     const errorMessage = error instanceof Error ? error.message : '未知错误';

@@ -119,12 +119,12 @@ export default function DashboardPage() {
             localStorage.setItem(optKey, '0');
           }
         } else {
-          // 首次使用，给予初始2次
-          console.log('未登录用户首次使用，给予初始2次');
-          setEvaluationRemaining(2);
-          setOptimizationRemaining(2);
-          localStorage.setItem(evalKey, '2');
-          localStorage.setItem(optKey, '2');
+          // 未登录用户不给予使用机会
+          console.log('未登录用户，不给予使用机会');
+          setEvaluationRemaining(0);
+          setOptimizationRemaining(0);
+          localStorage.setItem(evalKey, '0');
+          localStorage.setItem(optKey, '0');
           localStorage.setItem(initialCreditsGivenKey, 'true');
         }
       } else {

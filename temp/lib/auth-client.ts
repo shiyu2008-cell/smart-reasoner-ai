@@ -1,11 +1,12 @@
 import { createAuthClient } from "better-auth/react";
 import { username } from "better-auth/plugins";
+import { dashClient } from "@better-auth/infra/client";
 import { useState, useCallback } from "react";
 
 // 创建认证客户端
 export const authClient = createAuthClient({
   baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
-  plugins: [username()],
+  plugins: [username(), dashClient()],
 });
 
 // 导出 useSession 钩子

@@ -433,7 +433,7 @@ export default function CookiesPage() {
                 <strong>邮寄地址：</strong>无固定营业地址（个人经营），收件人：万柏
               </li>
               <li>
-                <strong>电话：</strong>13522220541
+                <strong>微信：</strong>13522220541
               </li>
             </ul>
             <p className="mt-4">

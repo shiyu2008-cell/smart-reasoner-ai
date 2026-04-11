@@ -1,4 +1,6 @@
 import { betterAuth } from "better-auth";
+import { dash } from "@better-auth/infra";
+import { admin } from "better-auth/plugins";
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET!,
@@ -30,8 +32,43 @@ export const auth = betterAuth({
         required: false,
         unique: false,
       },
+      evaluation_credits: {
+        type: "number",
+        required: true,
+        default: 3,
+      },
+      optimization_credits: {
+        type: "number",
+        required: true,
+        default: 0,
+      },
+      total_evaluations: {
+        type: "number",
+        required: true,
+        default: 0,
+      },
+      total_optimizations: {
+        type: "number",
+        required: true,
+        default: 0,
+      },
     },
   },
+  plugins: [
+    dash({
+      apiKey: process.env.BETTER_AUTH_API_KEY,
+      activityTracking: {
+        enabled: true,
+        updateInterval: 300000, // 5分钟
+      },
+    }),
+    admin({
+      // 管理员用户ID列表，我们使用IP白名单替代
+      adminUserIds: ["admin-user"],
+      // 启用管理员API
+      enabled: true,
+    }),
+  ],
 });
 
 // 导出类型

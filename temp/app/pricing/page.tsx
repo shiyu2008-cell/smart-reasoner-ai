@@ -1,191 +1,125 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle, Star, Zap, Shield, Users, Rocket, Sparkles } from "lucide-react"
+import { CheckCircle, Zap, Shield, Sparkles, Crown, TrendingUp, Target, BadgeCheck, Gem } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "AI简历优化价格 | 新人1元试用+专业套餐 - ResumeAI",
-  description: "ResumeAI提供灵活定价：新人1元试用3次评估优化，专业套餐16次仅6.66元。按需付费，无隐藏费用，7天满意度保障。",
+  title: "AI简历优化价格 | 超值套餐选择 - ResumeAI",
+  description: "选择最适合您的AI简历优化套餐：5毛钱单次体验、5块钱200次当月超值套餐、50块3000次年度尊享。透明定价，无隐藏费用。",
   openGraph: {
-    title: "AI简历优化价格 | 新人1元试用 - ResumeAI",
-    description: "新人1元试用3次评估优化，专业套餐16次仅6.66元。按需付费，无隐藏费用，7天满意度保障。",
+    title: "AI简历优化价格 | 超值套餐选择 - ResumeAI",
+    description: "选择最适合您的AI简历优化套餐：5毛钱单次体验、5块钱200次当月超值套餐、50块3000次年度尊享。",
     url: "https://resume-ai.com/pricing",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "AI简历优化价格 | 新人1元试用 - ResumeAI",
-    description: "新人1元试用3次评估优化，专业套餐16次仅6.66元。按需付费，无隐藏费用，7天满意度保障。",
+    title: "AI简历优化价格 | 超值套餐选择 - ResumeAI",
+    description: "选择最适合您的AI简历优化套餐：5毛钱单次体验、5块钱200次当月超值套餐、50块3000次年度尊享。",
   },
 };
 
 export default function PricingPage() {
   const plans = [
     {
-      name: "新人破冰",
-      price: "¥1",
-      period: "/3次",
-      description: "新人超值特价",
+      name: "单次体验",
+      price: "¥0.5",
+      period: "/次",
+      description: "适合偶尔使用的用户",
       popular: false,
+      highlight: false,
+      badge: "灵活",
+      icon: Zap,
+      color: "from-blue-500 to-cyan-400",
       features: [
-        { text: "3次简历评估", included: true },
-        { text: "3次AI优化", included: true },
-        { text: "模板导出功能", included: true },
-        { text: "基础数据分析", included: true },
-        { text: "社区支持", included: true },
-        { text: "购买限制: 限1次", included: true }
+        { text: "1次简历AI评估", included: true },
+        { text: "1次简历AI优化", included: true },
+        { text: "基础模板导出", included: true },
+        { text: "24小时内使用", included: true },
+        { text: "单次购买，无需订阅", included: true },
+        { text: "适合临时需求", included: true }
       ],
       cta: "立即购买",
-      href: "/payment/new-user",
-      highlight: true
+      href: "/payment/single",
+      note: ""
     },
     {
-      name: "六六顺",
-      price: "¥6.66",
-      period: "/16次",
-      description: "平均每份简历优化成本仅0.4元",
+      name: "月度超值",
+      price: "¥5",
+      period: "/200次",
+      description: "最受欢迎的性价比之选",
       popular: true,
+      highlight: true,
+      badge: "超值推荐",
+      icon: Crown,
+      color: "from-emerald-500 to-green-400",
       features: [
-        { text: "16次简历评估", included: true },
-        { text: "16次AI优化", included: true },
-        { text: "模板导出功能", included: true },
-        { text: "详细数据分析", included: true },
-        { text: "邮件支持", included: true },
-        { text: "购买限制: 限1次", included: true }
+        { text: "200次简历AI评估", included: true },
+        { text: "200次简历AI优化", included: true },
+        { text: "高级模板导出", included: true },
+        { text: "详细数据分析报告", included: true },
+        { text: "当月无限使用", included: true },
+        { text: "仅限当月有效", included: true },
+        { text: "平均每次仅¥0.025", included: true },
+        { text: "优先技术支持", included: true }
       ],
-      cta: "立即购买",
-      href: "/payment/six-six-smooth",
-      highlight: true
-    },
-    {
-      name: "轻量小包",
-      price: "¥9.9",
-      period: "/20次",
-      description: "高性价比套餐",
-      popular: false,
-      features: [
-        { text: "20次简历评估", included: true },
-        { text: "20次AI优化", included: true },
-        { text: "模板导出功能", included: true },
-        { text: "详细数据分析", included: true },
-        { text: "邮件支持", included: true },
-        { text: "购买限制: 不限购", included: true }
-      ],
-      cta: "立即购买",
-      href: "/payment/light-pack",
-      highlight: false
-    },
-    {
-      name: "专业超值",
-      price: "¥25",
-      period: "/60次",
-      description: "专业人员欣赏的超值套餐",
-      popular: false,
-      features: [
-        { text: "60次简历评估", included: true },
-        { text: "60次AI优化", included: true },
-
-        { text: "模板导出功能", included: true },
-        { text: "详细数据分析", included: true },
-        { text: "邮件支持", included: true },
-        { text: "购买限制: 不限购", included: true }
-      ],
-      cta: "立即购买",
-      href: "/payment/professional",
-      highlight: false
-    },
-    {
-      name: "月卡",
-      price: "¥29.9",
-      period: "/30天",
-      description: "职场冲刺期首选",
-      popular: false,
-      features: [
-        { text: "30天不限次评估", included: true },
-        { text: "30天不限次优化", included: true },
-
-        { text: "模板导出功能", included: true },
-        { text: "详细数据分析", included: true },
-        { text: "优先级支持", included: true },
-        { text: "熔断限制: 200次", included: true },
-        { text: "购买限制: 不限购", included: true }
-      ],
-      cta: "立即购买",
+      cta: "立即抢购",
       href: "/payment/monthly",
-      highlight: false
+      note: "仅限当月使用"
     },
     {
-      name: "年卡",
-      price: "¥299",
-      period: "/12个月",
-      description: "高价值，高投入用户的首选",
+      name: "年度尊享",
+      price: "¥50",
+      period: "/3000次",
+      description: "重度用户最佳选择",
       popular: false,
+      highlight: false,
+      badge: "尊享",
+      icon: Gem,
+      color: "from-purple-500 to-pink-400",
       features: [
-        { text: "12个月不限次评估", included: true },
-        { text: "12个月不限次优化", included: true },
-
-        { text: "模板导出功能", included: true },
-        { text: "高级数据分析", included: true },
+        { text: "3000次简历AI评估", included: true },
+        { text: "3000次简历AI优化", included: true },
+        { text: "所有高级模板", included: true },
+        { text: "深度数据分析报告", included: true },
+        { text: "全年无限使用", included: true },
+        { text: "仅限当年有效", included: true },
+        { text: "平均每次仅¥0.017", included: true },
         { text: "专属客户经理", included: true },
-        { text: "定制开发支持", included: true },
-        { text: "购买限制: 不限购", included: true }
+        { text: "定制化功能请求", included: true }
       ],
-      cta: "立即购买",
+      cta: "尊享购买",
       href: "/payment/annual",
-      highlight: false
-    },
-    {
-      name: "超大包",
-      price: "¥168",
-      period: "/500次",
-      description: "妈妈再也不用担心我简历写不好了",
-      popular: false,
-      features: [
-        { text: "500次简历评估", included: true },
-        { text: "500次AI优化", included: true },
-
-        { text: "模板导出功能", included: true },
-        { text: "详细数据分析", included: true },
-        { text: "邮件支持", included: true },
-        { text: "有效期: 永久", included: true }
-      ],
-      cta: "立即购买",
-      href: "/payment/mega-pack",
-      highlight: false
+      note: "仅限当年使用"
     }
   ]
 
   const faqs = [
     {
-      question: "新人破冰套餐限购1次是什么意思？",
-      answer: "新人破冰套餐是专为新用户设计的特惠套餐，每个用户仅限购买1次，用于体验我们的核心服务。"
+      question: "月度超值套餐的'仅限当月使用'是什么意思？",
+      answer: "月度超值套餐在购买当月的自然月内有效，例如5月15日购买，有效期至5月31日。200次使用次数仅在当月有效，未使用次数不累积到下月。"
     },
     {
-      question: "月卡的不限次服务有使用限制吗？",
-      answer: "月卡提供30天内不限次数使用，但设有熔断机制：每月最多使用200次服务，超过后当月将暂停服务，下月自动恢复。"
+      question: "年度尊享套餐的'仅限当年使用'是什么意思？",
+      answer: "年度尊享套餐在购买当年的自然年内有效，例如2025年5月15日购买，有效期至2025年12月31日。3000次使用次数仅在当年有效。"
     },
     {
-      question: "年卡包含哪些额外权益？",
-      answer: "年卡用户享受12个月不限次服务，还包含专属客户经理、API访问和定制开发支持等高价值权益。"
-    },
-    {
-      question: "超大包500次服务有效期多久？",
-      answer: "超大包500次服务有效期为永久，无时间限制，适合需要大量使用但不需要月卡连续服务的用户。"
-    },
-
-    {
-      question: "购买后如何开通服务？",
-      answer: "支付成功后，系统会自动开通相应服务次数或时长，您可以在用户中心查看剩余次数、有效期和使用记录。"
+      question: "购买后如何开始使用？",
+      answer: "购买后，您的账户将立即获得相应次数。登录后即可在仪表板中使用AI简历评估和优化功能。"
     },
     {
       question: "支持哪些支付方式？",
-      answer: "目前支持支付宝和微信支付，后续将开通更多支付方式。"
+      answer: "目前支持微信支付。请添加微信号 13522220541 联系客服完成支付。支付时请备注您的用户名。"
     },
     {
       question: "是否可以开具发票？",
-      answer: "所有付费套餐均可申请开具增值税普通发票或专用发票，请在购买后联系客服办理。"
+      answer: "所有付费套餐均可申请开具发票，请在支付后联系客服办理。"
+    },
+    {
+      question: "如果次数用完了怎么办？",
+      answer: "您可以在次数用尽后购买新的套餐。月度套餐和年度套餐都有大量次数，适合不同使用频率的用户。"
     }
   ]
 
@@ -194,128 +128,153 @@ export default function PricingPage() {
       {/* 页面头部 */}
       <div className="container mx-auto px-4 py-16 md:py-24">
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-6 animate-pulse-subtle">
-            <Sparkles className="h-4 w-4" />
-            <span className="text-sm font-medium">透明定价 · 无隐藏费用</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-emerald-500/20 to-green-500/20 text-emerald-600 dark:text-emerald-400 mb-6 animate-pulse-subtle">
+            <TrendingUp className="h-4 w-4" />
+            <span className="text-sm font-medium">超高性价比 · 透明定价</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 gradient-text">
-            简单透明的定价方案
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6 bg-gradient-to-r from-primary via-emerald-500 to-accent bg-clip-text text-transparent">
+            简单极致的价格方案
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
-            我们相信好用的工具应该简单实惠。选择适合您的方案，开始提升简历质量。
+            我们摒弃复杂套餐，只提供三种最实用选择。无论您是偶尔使用还是专业需求，总有一款适合您。
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button asChild variant="outline" size="lg">
               <Link href="/features">查看功能详情</Link>
             </Button>
-            <Button asChild size="lg">
-              <Link href="/auth/register">立即免费注册</Link>
+            <Button asChild size="lg" className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600">
+              <Link href="#plans">查看套餐</Link>
             </Button>
           </div>
         </div>
 
         {/* 定价卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-16 max-w-7xl mx-auto">
-          {plans.map((plan, index) => (
-            <Card 
-              key={plan.name}
-              className={`relative flex flex-col h-full transition-all duration-300 hover:shadow-xl animate-slide-up ${
-                plan.highlight 
-                  ? "border-2 border-primary shadow-soft scale-105" 
-                  : "border-primary/10"
-              }`}
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <div className="px-4 py-1.5 rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground text-sm font-semibold flex items-center gap-2">
-                    <Star className="h-3 w-3" />
-                    最受欢迎
+        <div id="plans" className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16 max-w-6xl mx-auto">
+          {plans.map((plan, index) => {
+            const Icon = plan.icon
+            return (
+              <Card 
+                key={plan.name}
+                className={`relative flex flex-col h-full transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 animate-slide-up ${
+                  plan.highlight 
+                    ? "border-2 border-emerald-500 shadow-xl scale-105 lg:scale-110 z-10" 
+                    : "border-primary/10"
+                }`}
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                {/* 推荐徽章 */}
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
+                    <div className="px-6 py-2 rounded-full bg-gradient-to-r from-emerald-500 to-green-500 text-white text-sm font-bold flex items-center gap-2 shadow-lg">
+                      <BadgeCheck className="h-4 w-4" />
+                      {plan.badge}
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              <CardHeader className="text-center pb-6">
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  {plan.name === "新人破冰" && <Zap className="h-5 w-5 text-amber-500" />}
-                  {plan.name === "六六顺" && <Sparkles className="h-5 w-5 text-green-500" />}
-                  {plan.name === "轻量小包" && <Zap className="h-5 w-5 text-blue-500" />}
-                  {plan.name === "轻量超值" && <Rocket className="h-5 w-5 text-primary" />}
-                  {plan.name === "月卡" && <Star className="h-5 w-5 text-yellow-500" />}
-                  {plan.name === "年卡" && <Shield className="h-5 w-5 text-purple-500" />}
-                  {plan.name === "超大包" && <Users className="h-5 w-5 text-indigo-500" />}
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                </div>
-                <div className="mb-4">
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    {plan.period && (
-                      <span className="text-muted-foreground">{plan.period}</span>
+                )}
+                
+                {/* 角标 */}
+                {plan.badge && !plan.popular && (
+                  <div className="absolute -top-3 -right-3">
+                    <div className="px-3 py-1 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 text-primary text-xs font-semibold">
+                      {plan.badge}
+                    </div>
+                  </div>
+                )}
+                
+                {/* 装饰性背景 */}
+                <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${plan.color}`} />
+                
+                <CardHeader className="text-center pb-6 pt-8">
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <div className={`p-3 rounded-xl bg-gradient-to-r ${plan.color} text-white`}>
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                  </div>
+                  <div className="mb-4">
+                    <div className="flex items-baseline justify-center gap-1">
+                      <span className="text-5xl font-bold">{plan.price}</span>
+                      {plan.period && (
+                        <span className="text-muted-foreground text-xl">{plan.period}</span>
+                      )}
+                    </div>
+                    {plan.note && (
+                      <div className="mt-2">
+                        <span className="text-sm font-medium px-3 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                          {plan.note}
+                        </span>
+                      </div>
                     )}
                   </div>
-                </div>
-                <CardDescription className="text-base">{plan.description}</CardDescription>
-              </CardHeader>
-              
-              <CardContent className="flex-grow">
-                <ul className="space-y-3">
-                  {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-3">
-                      {feature.included ? (
-                        <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      ) : (
-                        <div className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                      )}
-                      <span className={`${feature.included ? "text-foreground" : "text-muted-foreground line-through"}`}>
-                        {feature.text}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              
-              <CardFooter>
-                <Button 
-                  asChild 
-                  size="lg" 
-                  className={`w-full ${plan.highlight ? "animate-pulse-subtle" : ""}`}
-                  variant={plan.highlight ? "default" : "outline"}
-                >
-                  <Link href={plan.href}>{plan.cta}</Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+                  <CardDescription className="text-base">{plan.description}</CardDescription>
+                </CardHeader>
+                
+                <CardContent className="flex-grow">
+                  <ul className="space-y-3">
+                    {plan.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-start gap-3">
+                        {feature.included ? (
+                          <CheckCircle className="h-5 w-5 text-emerald-500 flex-shrink-0 mt-0.5" />
+                        ) : (
+                          <div className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                        )}
+                        <span className={`${feature.included ? "text-foreground" : "text-muted-foreground line-through"}`}>
+                          {feature.text}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+                
+                <CardFooter className="pt-6">
+                  <Button 
+                    asChild 
+                    size="lg" 
+                    className={`w-full ${plan.highlight ? "bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 animate-pulse-subtle" : ""}`}
+                    variant={plan.highlight ? "default" : "outline"}
+                  >
+                    <Link href={plan.href}>{plan.cta}</Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            )
+          })}
         </div>
 
         {/* 特色说明 */}
-        <div className="mb-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-primary/5 to-transparent border border-primary/10">
+        <div className="mb-16 max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold mb-4">为什么选择我们的套餐？</h2>
+            <p className="text-muted-foreground max-w-3xl mx-auto">
+              我们专注于提供最实用、最高性价比的AI简历优化服务，让每一分钱都物超所值。
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-emerald-500/5 to-transparent border border-emerald-500/10 hover:border-emerald-500/30 transition-all duration-300">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-500/10 mb-4">
+                <Target className="h-6 w-6 text-emerald-500" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">极致性价比</h3>
+              <p className="text-muted-foreground">
+                月度套餐200次仅5元，平均每次仅0.025元，是市场上最具竞争力的价格。
+              </p>
+            </div>
+            <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-primary/5 to-transparent border border-primary/10 hover:border-primary/30 transition-all duration-300">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-4">
                 <Sparkles className="h-6 w-6 text-primary" />
               </div>
               <h3 className="text-lg font-semibold mb-2">灵活选择</h3>
               <p className="text-muted-foreground">
-                7种套餐满足不同需求，从新人破冰到年卡，总有一款适合您
+                三种套餐覆盖所有需求：单次体验、月度超值、年度尊享，总有一款适合您。
               </p>
             </div>
-            <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-accent/5 to-transparent border border-accent/10">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent/10 mb-4">
-                <Star className="h-6 w-6 text-accent" />
+            <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-purple-500/5 to-transparent border border-purple-500/10 hover:border-purple-500/30 transition-all duration-300">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-purple-500/10 mb-4">
+                <Shield className="h-6 w-6 text-purple-500" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">超高性价比</h3>
+              <h3 className="text-lg font-semibold mb-2">透明无隐藏</h3>
               <p className="text-muted-foreground">
-                月卡30天不限次仅29.9元，年卡锁定高价值用户，单价低至0.25元/天
-              </p>
-            </div>
-            <div className="text-center p-6 rounded-2xl bg-gradient-to-br from-secondary/5 to-transparent border border-secondary/10">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-secondary/10 mb-4">
-                <Shield className="h-6 w-6 text-secondary" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">透明定价</h3>
-              <p className="text-muted-foreground">
-                每个套餐清晰展示服务内容和定位，让您明明白白消费
+                所有套餐明码标价，无隐藏费用，无自动续费，让您完全掌控消费。
               </p>
             </div>
           </div>
@@ -345,24 +304,24 @@ export default function PricingPage() {
 
         {/* CTA */}
         <div className="text-center">
-          <div className="inline-block p-1 rounded-2xl bg-gradient-to-r from-primary via-purple-500 to-pink-500 animate-gradient">
+          <div className="inline-block p-1 rounded-2xl bg-gradient-to-r from-emerald-500 via-primary to-purple-500 animate-gradient">
             <div className="bg-background rounded-xl p-8 md:p-12">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-6">
-                <Sparkles className="h-4 w-4" />
-                <span className="text-sm font-medium">立即开始</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-emerald-500/10 to-green-500/10 text-emerald-600 dark:text-emerald-400 mb-6">
+                <Crown className="h-4 w-4" />
+                <span className="text-sm font-medium">立即升级体验</span>
               </div>
               <h3 className="text-2xl md:text-3xl font-bold mb-4">
-                还在犹豫什么？
+                立即体验AI简历优化的强大功能
               </h3>
               <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                新人破冰套餐仅需1元即可体验3次完整服务，无需任何付费即可体验智能简历优化
+                月度超值套餐正在热销中！200次AI优化仅需5元，平均每次仅0.025元，是提升求职竞争力的最佳投资。
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button asChild size="lg" variant="outline">
                   <Link href="/features">了解更多</Link>
                 </Button>
-                <Button asChild size="lg" className="animate-pulse-subtle">
-                  <Link href="/dashboard">免费开始使用</Link>
+                <Button asChild size="lg" className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 animate-pulse-subtle">
+                  <Link href="#plans">立即购买</Link>
                 </Button>
               </div>
             </div>

@@ -29,7 +29,7 @@ export default function PrivacyPage() {
             <p>
               <strong>数据控制者：</strong>万柏（个人经营）<br />
               <strong>电子邮件：</strong>l83311420@outlook.com<br />
-              <strong>电话：</strong>13522220541
+              <strong>微信：</strong>13522220541
             </p>
           </section>
 
@@ -376,7 +376,7 @@ export default function PrivacyPage() {
                 <strong>邮寄地址：</strong>无固定营业地址（个人经营），收件人：万柏
               </li>
               <li>
-                <strong>电话：</strong>13522220541
+                <strong>微信：</strong>13522220541
               </li>
             </ul>
             <p className="mt-4">

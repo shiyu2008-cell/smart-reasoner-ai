@@ -183,10 +183,6 @@ export async function GET() {
         timestamp: 'string'
       }
     },
-    validCodes: Object.keys(VALID_CODES).map(code => ({
-      code,
-      ...VALID_CODES[code]
-    })),
     features: [
       '兑换码验证',
       '奖励次数发放',

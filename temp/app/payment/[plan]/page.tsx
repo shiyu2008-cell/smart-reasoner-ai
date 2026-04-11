@@ -1,12 +1,16 @@
+"use client"
+
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, CheckCircle, AlertCircle, Sparkles, Zap, Star, Shield, Users, Rocket } from "lucide-react"
+import { ArrowLeft, CheckCircle, AlertCircle, Zap, Shield, Users, Crown, Gem, Phone, MessageSquare, UserCheck, CreditCard, Copy, Check } from "lucide-react"
 import Link from "next/link"
-import type { Metadata } from "next"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-client"
+import { useEffect, useState } from "react"
 
 // 支持的套餐参数类型
-export type PlanType = 'new-user' | 'professional' | 'monthly' | 'annual' | 'mega-pack' | 'six-six-smooth' | 'light-pack'
+export type PlanType = 'single' | 'monthly' | 'annual'
 
 // 套餐数据接口
 interface PlanData {
@@ -20,215 +24,153 @@ interface PlanData {
   color: string
   popular: boolean
   highlight: boolean
+  wechatInstructions: string
 }
 
 // 套餐数据映射
 const PLAN_DATA: Record<PlanType, PlanData> = {
-  'new-user': {
-    id: 'new-user',
-    name: '新人破冰',
-    price: '¥1',
-    period: '/3次',
-    description: '新人超值特价',
+  'single': {
+    id: 'single',
+    name: '单次体验',
+    price: '¥0.5',
+    period: '/次',
+    description: '适合偶尔使用的用户',
     features: [
-      { text: '3次简历评估', included: true },
-      { text: '3次AI优化', included: true },
-      { text: '模板导出功能', included: true },
-      { text: '基础数据分析', included: true },
-      { text: '社区支持', included: true },
-      { text: '购买限制: 限1次', included: true }
+      { text: '1次简历AI评估', included: true },
+      { text: '1次简历AI优化', included: true },
+      { text: '基础模板导出', included: true },
+      { text: '24小时内使用', included: true },
+      { text: '单次购买，无需订阅', included: true }
     ],
     icon: Zap,
-    color: 'from-amber-500 to-yellow-500',
+    color: 'from-blue-500 to-cyan-400',
     popular: false,
-    highlight: true
-  },
-  'professional': {
-    id: 'professional',
-    name: '专业超值',
-    price: '¥25',
-    period: '/60次',
-    description: '专业人员欣赏的超值套餐',
-    features: [
-      { text: '60次简历评估', included: true },
-      { text: '60次AI优化', included: true },
-      { text: '模板导出功能', included: true },
-      { text: '详细数据分析', included: true },
-      { text: '邮件支持', included: true },
-      { text: '购买限制: 不限购', included: true }
-    ],
-    icon: Star,
-    color: 'from-primary to-blue-500',
-    popular: false,
-    highlight: false
+    highlight: false,
+    wechatInstructions: '支付0.5元购买单次体验套餐'
   },
   'monthly': {
     id: 'monthly',
-    name: '月卡',
-    price: '¥29.9',
-    period: '/30天',
-    description: '职场冲刺期首选',
+    name: '月度超值',
+    price: '¥5',
+    period: '/200次',
+    description: '最受欢迎的性价比之选',
     features: [
-      { text: '30天不限次评估', included: true },
-      { text: '30天不限次优化', included: true },
-      { text: '模板导出功能', included: true },
-      { text: '详细数据分析', included: true },
-      { text: '优先级支持', included: true },
-      { text: '熔断限制: 200次', included: true },
-      { text: '购买限制: 不限购', included: true }
+      { text: '200次简历AI评估', included: true },
+      { text: '200次简历AI优化', included: true },
+      { text: '高级模板导出', included: true },
+      { text: '详细数据分析报告', included: true },
+      { text: '当月无限使用', included: true },
+      { text: '仅限当月有效', included: true },
+      { text: '平均每次仅¥0.025', included: true },
+      { text: '优先技术支持', included: true }
     ],
-    icon: Shield,
-    color: 'from-purple-500 to-indigo-500',
-    popular: false,
-    highlight: false
+    icon: Crown,
+    color: 'from-emerald-500 to-green-400',
+    popular: true,
+    highlight: true,
+    wechatInstructions: '支付5元购买月度超值套餐（200次）'
   },
   'annual': {
     id: 'annual',
-    name: '年卡',
-    price: '¥299',
-    period: '/12个月',
-    description: '高价值，高投入用户的首选',
+    name: '年度尊享',
+    price: '¥50',
+    period: '/3000次',
+    description: '重度用户最佳选择',
     features: [
-      { text: '12个月不限次评估', included: true },
-      { text: '12个月不限次优化', included: true },
-      { text: '模板导出功能', included: true },
-      { text: '高级数据分析', included: true },
+      { text: '3000次简历AI评估', included: true },
+      { text: '3000次简历AI优化', included: true },
+      { text: '所有高级模板', included: true },
+      { text: '深度数据分析报告', included: true },
+      { text: '全年无限使用', included: true },
+      { text: '仅限当年有效', included: true },
+      { text: '平均每次仅¥0.017', included: true },
       { text: '专属客户经理', included: true },
-      { text: '定制开发支持', included: true },
-      { text: '购买限制: 不限购', included: true }
+      { text: '定制化功能请求', included: true }
     ],
-    icon: Users,
-    color: 'from-green-500 to-emerald-500',
+    icon: Gem,
+    color: 'from-purple-500 to-pink-400',
     popular: false,
-    highlight: false
-  },
-  'mega-pack': {
-    id: 'mega-pack',
-    name: '超大包',
-    price: '¥168',
-    period: '/500次',
-    description: '妈妈再也不用担心我简历写不好了',
-    features: [
-      { text: '500次简历评估', included: true },
-      { text: '500次AI优化', included: true },
-      { text: '模板导出功能', included: true },
-      { text: '详细数据分析', included: true },
-      { text: '邮件支持', included: true },
-      { text: '有效期: 永久', included: true }
-    ],
-    icon: Rocket,
-    color: 'from-pink-500 to-rose-500',
-    popular: false,
-    highlight: false
-  },
-  'six-six-smooth': {
-    id: 'six-six-smooth',
-    name: '六六顺',
-    price: '¥6.66',
-    period: '/16次',
-    description: '平均每份简历优化成本仅0.4元',
-    features: [
-      { text: '16次简历评估', included: true },
-      { text: '16次AI优化', included: true },
-      { text: '模板导出功能', included: true },
-      { text: '详细数据分析', included: true },
-      { text: '邮件支持', included: true },
-      { text: '购买限制: 限1次', included: true }
-    ],
-    icon: Sparkles,
-    color: 'from-green-500 to-emerald-500',
-    popular: true,
-    highlight: true
-  },
-  'light-pack': {
-    id: 'light-pack',
-    name: '轻量小包',
-    price: '¥9.9',
-    period: '/20次',
-    description: '高性价比套餐',
-    features: [
-      { text: '20次简历评估', included: true },
-      { text: '20次AI优化', included: true },
-      { text: '模板导出功能', included: true },
-      { text: '详细数据分析', included: true },
-      { text: '邮件支持', included: true },
-      { text: '购买限制: 不限购', included: true }
-    ],
-    icon: Zap,
-    color: 'from-blue-500 to-cyan-500',
-    popular: false,
-    highlight: false
-  }
-}
-
-// 生成静态参数（用于静态生成）
-export function generateStaticParams() {
-  return Object.keys(PLAN_DATA).map((plan) => ({
-    plan: plan as PlanType
-  }))
-}
-
-// 页面元数据
-export async function generateMetadata({ params }: { params: Promise<{ plan: string }> }): Promise<Metadata> {
-  const { plan } = await params
-  const planData = PLAN_DATA[plan as PlanType]
-  
-  if (!planData) {
-    return {
-      title: '套餐不存在 - ResumeAI',
-      description: '请求的套餐不存在或已下架。'
-    }
-  }
-  
-  return {
-    title: `${planData.name}支付确认 - ResumeAI`,
-    description: `${planData.name}: ${planData.price}${planData.period} - ${planData.description}`,
-    openGraph: {
-      title: `${planData.name}支付确认 - ResumeAI`,
-      description: `${planData.name}: ${planData.price}${planData.period} - ${planData.description}`,
-      url: `https://resume-ai.com/payment/${plan}`,
-      type: 'website',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${planData.name}支付确认 - ResumeAI`,
-      description: `${planData.name}: ${planData.price}${planData.period} - ${planData.description}`,
-    },
+    highlight: false,
+    wechatInstructions: '支付50元购买年度尊享套餐（3000次）'
   }
 }
 
 // 页面组件
-export default async function PaymentPage({ params }: { params: Promise<{ plan: string }> }) {
-  const { plan } = await params
-  const planData = PLAN_DATA[plan as PlanType]
-  
-  // 无效套餐处理
-  if (!planData) {
+export default function PaymentPage({ params }: { params: Promise<{ plan: string }> }) {
+  const router = useRouter()
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const [planData, setPlanData] = useState<PlanData | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [planParam, setPlanParam] = useState<string>("")
+
+  // 解析参数
+  React.useEffect(() => {
+    const resolveParams = async () => {
+      const resolvedParams = await params
+      setPlanParam(resolvedParams.plan)
+    }
+    resolveParams()
+  }, [params])
+
+  // 检查登录状态
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push(`/auth/login?redirect=/payment/${planParam}`)
+    }
+  }, [isLoading, isAuthenticated, router, planParam])
+
+  // 设置套餐数据
+  useEffect(() => {
+    if (planParam) {
+      const data = PLAN_DATA[planParam as PlanType]
+      if (!data) {
+        router.push('/pricing')
+      } else {
+        // 使用setTimeout避免在effect中同步调用setState
+        const timer = setTimeout(() => {
+          setPlanData(data)
+        }, 0)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [planParam, router])
+
+  // 复制微信号到剪贴板
+  const copyWechatId = () => {
+    navigator.clipboard.writeText("13522220541")
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  // 如果正在加载或未登录，显示加载状态
+  if (isLoading || !planData) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5">
         <div className="container mx-auto px-4 py-16 md:py-24">
           <div className="max-w-2xl mx-auto text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-destructive/10 mb-6">
-              <AlertCircle className="h-10 w-10 text-destructive" />
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10 mb-6 animate-pulse">
+              <div className="h-10 w-10 rounded-full bg-primary/20" />
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">套餐不存在</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">加载中...</h1>
             <p className="text-muted-foreground mb-8">
-              您请求的套餐不存在或已下架。请返回价格页面选择其他可用套餐。
+              正在加载支付信息，请稍候。
             </p>
-            <Button asChild size="lg">
-              <Link href="/pricing">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                返回价格页面
-              </Link>
-            </Button>
           </div>
         </div>
       </div>
     )
   }
-  
+
+  // 如果未登录，已经重定向，这里不需要显示内容
+  if (!isAuthenticated) {
+    return null
+  }
+
   const Icon = planData.icon
-  
+  const currentDate = new Date()
+  const currentMonth = currentDate.getMonth() + 1
+  const currentYear = currentDate.getFullYear()
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-primary/5">
       <div className="container mx-auto px-4 py-8 md:py-16">
@@ -245,20 +187,20 @@ export default async function PaymentPage({ params }: { params: Promise<{ plan: 
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-6 animate-pulse-subtle">
-              <Sparkles className="h-4 w-4" />
-              <span className="text-sm font-medium">支付确认 · 安全可靠</span>
+              <CreditCard className="h-4 w-4" />
+              <span className="text-sm font-medium">微信支付 · 安全便捷</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 gradient-text">
-              确认您的订单
+              微信支付确认
             </h1>
             <p className="text-xl text-muted-foreground">
-              请仔细核对套餐信息，确认无误后进行支付
+              请按照以下步骤完成支付，支付成功后系统将自动开通服务
             </p>
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* 套餐详情卡片 */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-8">
               <Card className="relative overflow-hidden border-2 border-primary/20 hover:border-primary/30 transition-all duration-300">
                 {/* 装饰性背景 */}
                 <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-gradient-to-br from-primary/5 to-accent/5 blur-3xl -translate-y-32 translate-x-32" />
@@ -275,8 +217,8 @@ export default async function PaymentPage({ params }: { params: Promise<{ plan: 
                       </div>
                     </div>
                     {planData.popular && (
-                      <div className="px-3 py-1 rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground text-sm font-semibold">
-                        最受欢迎
+                      <div className="px-3 py-1 rounded-full bg-gradient-to-r from-emerald-500 to-green-500 text-primary-foreground text-sm font-semibold">
+                        超值推荐
                       </div>
                     )}
                   </div>
@@ -287,6 +229,21 @@ export default async function PaymentPage({ params }: { params: Promise<{ plan: 
                   <div className="flex items-baseline gap-2">
                     <span className="text-5xl font-bold">{planData.price}</span>
                     <span className="text-2xl text-muted-foreground">{planData.period}</span>
+                  </div>
+                  
+                  {/* 有效期说明 */}
+                  <div className="rounded-lg bg-primary/5 p-4">
+                    <div className="flex items-center gap-3">
+                      <AlertCircle className="h-5 w-5 text-primary" />
+                      <div>
+                        <h4 className="font-semibold">有效期说明</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {planData.id === 'single' && '购买后24小时内有效'}
+                          {planData.id === 'monthly' && `有效期：${currentYear}年${currentMonth}月1日 - ${currentYear}年${currentMonth}月${new Date(currentYear, currentMonth, 0).getDate()}日`}
+                          {planData.id === 'annual' && `有效期：${currentYear}年1月1日 - ${currentYear}年12月31日`}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                   
                   {/* 特性列表 */}
@@ -307,19 +264,96 @@ export default async function PaymentPage({ params }: { params: Promise<{ plan: 
                       ))}
                     </ul>
                   </div>
-                  
-                  {/* 待开发提示 */}
-                  <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-6">
+                </CardContent>
+              </Card>
+
+              {/* 微信支付说明 */}
+              <Card className="border-2 border-emerald-500/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <MessageSquare className="h-6 w-6 text-emerald-500" />
+                    微信支付步骤
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
                     <div className="flex items-start gap-4">
-                      <AlertCircle className="h-6 w-6 text-amber-600 flex-shrink-0" />
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold flex-shrink-0">
+                        1
+                      </div>
                       <div>
-                        <h4 className="font-semibold text-amber-800 mb-2">支付功能待开发</h4>
-                        <p className="text-amber-700">
-                          支付功能目前正在开发中，暂时无法完成支付。我们的开发团队正在全力推进，敬请期待！
+                        <h4 className="font-semibold">添加微信</h4>
+                        <p className="text-muted-foreground">
+                          添加我们的客服微信号：
                         </p>
-                        <p className="text-amber-700 mt-2">
-                          在此期间，您可以先体验我们的免费服务或联系客服进行人工购买。
+                        <div className="mt-2 flex items-center gap-3">
+                          <div className="px-4 py-2 rounded-lg bg-emerald-50 border border-emerald-200 font-mono text-lg font-bold">
+                            13522220541
+                          </div>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={copyWechatId}
+                            className="gap-2"
+                          >
+                            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                            {copied ? "已复制" : "复制"}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold flex-shrink-0">
+                        2
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">发送支付信息</h4>
+                        <p className="text-muted-foreground">
+                          添加好友后，请发送以下信息：
                         </p>
+                        <div className="mt-2 p-4 rounded-lg bg-muted font-mono text-sm whitespace-pre-wrap">
+                          {`用户名：${user?.name || user?.email || '您的用户名'}\n套餐：${planData.name}\n${planData.wechatInstructions}`}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold flex-shrink-0">
+                        3
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">完成支付</h4>
+                        <p className="text-muted-foreground">
+                          根据客服提示完成微信支付。支付时请务必备注您的用户名，以便我们快速为您开通服务。
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 font-bold flex-shrink-0">
+                        4
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">等待开通</h4>
+                        <p className="text-muted-foreground">
+                          支付成功后，我们的客服将在5-15分钟内为您开通服务。开通后您会收到通知，即可开始使用。
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-semibold text-amber-800">重要提示</h4>
+                        <ul className="text-amber-700 text-sm space-y-1 mt-1">
+                          <li>• 支付时请务必备注您的用户名，否则可能延迟开通</li>
+                          <li>• 如果您在30分钟内未收到开通通知，请通过微信联系客服</li>
+                          <li>• 开通后，您可以在用户中心查看剩余次数和使用记录</li>
+                          <li>• 如有任何问题，请随时通过微信联系客服</li>
+                        </ul>
                       </div>
                     </div>
                   </div>
@@ -327,8 +361,33 @@ export default async function PaymentPage({ params }: { params: Promise<{ plan: 
               </Card>
             </div>
             
-            {/* 订单摘要 */}
+            {/* 订单摘要和用户信息 */}
             <div className="space-y-6">
+              {/* 用户信息 */}
+              <Card className="border-primary/10">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-3">
+                    <UserCheck className="h-5 w-5 text-primary" />
+                    用户信息
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">用户名</span>
+                    <span className="font-semibold">{user?.name || '未设置'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">邮箱</span>
+                    <span className="font-semibold truncate">{user?.email || '未设置'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">用户ID</span>
+                    <span className="font-mono text-xs truncate">{user?.id || '未知'}</span>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* 订单摘要 */}
               <Card className="border-primary/10">
                 <CardHeader>
                   <CardTitle>订单摘要</CardTitle>
@@ -355,45 +414,53 @@ export default async function PaymentPage({ params }: { params: Promise<{ plan: 
                 </CardContent>
               </Card>
               
-              <Card className="border-primary/10">
+              {/* 联系客服 */}
+              <Card className="border-emerald-500/20">
                 <CardHeader>
-                  <CardTitle>支付方式</CardTitle>
+                  <CardTitle className="flex items-center gap-3">
+                    <Phone className="h-5 w-5 text-emerald-500" />
+                    联系客服
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="rounded-lg border p-4 cursor-not-allowed opacity-60">
+                  <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                        <span className="text-blue-600 font-bold">支</span>
+                      <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                        <MessageSquare className="h-5 w-5 text-emerald-600" />
                       </div>
                       <div>
-                        <div className="font-medium">支付宝</div>
-                        <div className="text-sm text-muted-foreground">快速安全的支付方式</div>
+                        <div className="font-medium">微信客服</div>
+                        <div className="text-sm text-muted-foreground">快速响应，专业服务</div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="rounded-lg border p-4 cursor-not-allowed opacity-60">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                        <span className="text-green-600 font-bold">微</span>
-                      </div>
-                      <div>
-                        <div className="font-medium">微信支付</div>
-                        <div className="text-sm text-muted-foreground">便捷的移动支付</div>
-                      </div>
+                    <div className="text-center">
+                      <div className="font-mono text-lg font-bold mb-2">13522220541</div>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={copyWechatId}
+                        className="w-full gap-2"
+                      >
+                        {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        {copied ? "微信号已复制" : "复制微信号"}
+                      </Button>
                     </div>
                   </div>
+                  <p className="text-center text-sm text-muted-foreground">
+                    添加微信时请备注&quot;简历优化&quot;，以便快速通过验证。
+                  </p>
                 </CardContent>
               </Card>
               
               <div className="space-y-4">
                 <Button 
+                  asChild
                   size="lg" 
-                  className="w-full cursor-not-allowed"
-                  disabled
+                  className="w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600"
                 >
-                  <AlertCircle className="mr-2 h-5 w-5" />
-                  支付功能开发中
+                  <Link href="/dashboard">
+                    返回仪表板
+                  </Link>
                 </Button>
                 
                 <Button 
@@ -415,20 +482,20 @@ export default async function PaymentPage({ params }: { params: Promise<{ plan: 
             </div>
           </div>
           
-          {/* 安全提示 */}
+          {/* 支付保障 */}
           <div className="mt-12 rounded-xl border border-border bg-card p-6">
             <div className="flex items-start gap-4">
               <Shield className="h-6 w-6 text-primary flex-shrink-0" />
               <div>
-                <h3 className="text-lg font-semibold mb-2">安全支付保障</h3>
+                <h3 className="text-lg font-semibold mb-2">支付安全保障</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-lg bg-green-100 flex items-center justify-center">
                       <CheckCircle className="h-4 w-4 text-green-600" />
                     </div>
                     <div>
-                      <div className="font-medium">SSL加密</div>
-                      <div className="text-sm text-muted-foreground">银行级数据保护</div>
+                      <div className="font-medium">人工确认</div>
+                      <div className="text-sm text-muted-foreground">每笔订单人工核对</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -445,8 +512,8 @@ export default async function PaymentPage({ params }: { params: Promise<{ plan: 
                       <Users className="h-4 w-4 text-amber-600" />
                     </div>
                     <div>
-                      <div className="font-medium">7天无忧退款</div>
-                      <div className="text-sm text-muted-foreground">不满意全额退款</div>
+                      <div className="font-medium">售后保障</div>
+                      <div className="text-sm text-muted-foreground">支付后未开通全额退款</div>
                     </div>
                   </div>
                 </div>
