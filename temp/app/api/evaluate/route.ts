@@ -15,7 +15,7 @@ const anonymousEvaluations = new Set<string>();
 
 // 生成设备标识（基于IP和User-Agent）
 function getDeviceIdentifier(request: NextRequest): string {
-  const ip = request.ip || request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
   const userAgent = request.headers.get('user-agent') || 'unknown';
   return `${ip}-${userAgent}`;
 }

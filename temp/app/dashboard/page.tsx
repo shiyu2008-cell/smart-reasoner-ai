@@ -72,63 +72,10 @@ export default function DashboardPage() {
       
       console.log('从localStorage加载的值:', { savedEvaluation, savedOptimization });
       
-      // 对于未登录用户，检查是否已经给予过初始次数
+      // 对于未登录用户，直接加载保存的值
       if (!isAuthenticated) {
-        const initialCreditsGivenKey = 'anonymous_initial_credits_given';
-        const initialCreditsGiven = localStorage.getItem(initialCreditsGivenKey);
+        console.log('未登录用户，加载保存的次数');
         
-        if (initialCreditsGiven === 'true') {
-          // 已经给予过初始次数，只加载保存的值（如果没有保存的值，则视为0）
-          console.log('未登录用户已获得初始次数，不重新初始化');
-          
-          // 处理评估次数
-          if (savedEvaluation !== null) {
-            const evalValue = parseInt(savedEvaluation, 10);
-            if (!isNaN(evalValue) && evalValue >= 0) {
-              setEvaluationRemaining(evalValue);
-              console.log('设置评估次数:', evalValue);
-            } else {
-              // 值无效，设置为0（次数已用完）
-              console.warn('评估次数无效，设置为0');
-              setEvaluationRemaining(0);
-              localStorage.setItem(evalKey, '0');
-            }
-          } else {
-            // 没有保存的值，设置为0（次数已用完）
-            console.log('无保存的评估次数，设置为0');
-            setEvaluationRemaining(0);
-            localStorage.setItem(evalKey, '0');
-          }
-          
-          // 处理优化次数
-          if (savedOptimization !== null) {
-            const optValue = parseInt(savedOptimization, 10);
-            if (!isNaN(optValue) && optValue >= 0) {
-              setOptimizationRemaining(optValue);
-              console.log('设置优化次数:', optValue);
-            } else {
-              // 值无效，设置为0（次数已用完）
-              console.warn('优化次数无效，设置为0');
-              setOptimizationRemaining(0);
-              localStorage.setItem(optKey, '0');
-            }
-          } else {
-            // 没有保存的值，设置为0（次数已用完）
-            console.log('无保存的优化次数，设置为0');
-            setOptimizationRemaining(0);
-            localStorage.setItem(optKey, '0');
-          }
-        } else {
-          // 未登录用户不给予使用机会
-          console.log('未登录用户，不给予使用机会');
-          setEvaluationRemaining(0);
-          setOptimizationRemaining(0);
-          localStorage.setItem(evalKey, '0');
-          localStorage.setItem(optKey, '0');
-          localStorage.setItem(initialCreditsGivenKey, 'true');
-        }
-      } else {
-        // 登录用户：加载保存的值或使用默认值
         // 处理评估次数
         if (savedEvaluation !== null) {
           const evalValue = parseInt(savedEvaluation, 10);
@@ -136,16 +83,15 @@ export default function DashboardPage() {
             setEvaluationRemaining(evalValue);
             console.log('设置评估次数:', evalValue);
           } else {
-            // 值无效，设置为默认值
-            console.warn('评估次数无效，重置为默认值');
-            setEvaluationRemaining(2);
-            localStorage.setItem(evalKey, '2');
+            // 值无效，设置为0
+            console.warn('评估次数无效，设置为0');
+            setEvaluationRemaining(0);
+            localStorage.setItem(evalKey, '0');
           }
         } else {
-          // 无保存的评估次数，设置为默认值2
-          console.log('无保存的评估次数，设置为默认值2');
-          setEvaluationRemaining(2);
-          localStorage.setItem(evalKey, '2');
+          // 没有保存的值，设置为0
+          console.log('无保存的评估次数，设置为0');
+          setEvaluationRemaining(0);
         }
         
         // 处理优化次数
@@ -155,16 +101,129 @@ export default function DashboardPage() {
             setOptimizationRemaining(optValue);
             console.log('设置优化次数:', optValue);
           } else {
-            // 值无效，设置为默认值
-            console.warn('优化次数无效，重置为默认值');
+            // 值无效，设置为0
+            console.warn('优化次数无效，设置为0');
+            setOptimizationRemaining(0);
+            localStorage.setItem(optKey, '0');
+          }
+        } else {
+          // 没有保存的值，设置为0
+          console.log('无保存的优化次数，设置为0');
+          setOptimizationRemaining(0);
+        }
+      } else {
+        // 登录用户：加载保存的值或使用默认值
+        // 首先检查是否有匿名用户的数据需要迁移
+        const anonymousEvalKey = 'evaluationRemaining_anonymous';
+        const anonymousOptKey = 'optimizationRemaining_anonymous';
+        const anonymousSavedEvaluation = localStorage.getItem(anonymousEvalKey);
+        const anonymousSavedOptimization = localStorage.getItem(anonymousOptKey);
+        
+        let migrated = false;
+        
+        // 如果存在匿名用户数据，迁移到认证用户
+        if (anonymousSavedEvaluation !== null || anonymousSavedOptimization !== null) {
+          console.log('发现匿名用户数据，开始迁移到认证用户');
+          
+          // 迁移评估次数
+          if (anonymousSavedEvaluation !== null) {
+            const evalValue = parseInt(anonymousSavedEvaluation, 10);
+            if (!isNaN(evalValue) && evalValue >= 0) {
+              localStorage.setItem(evalKey, evalValue.toString());
+              console.log('迁移评估次数:', evalValue);
+              migrated = true;
+            }
+          }
+          
+          // 迁移优化次数
+          if (anonymousSavedOptimization !== null) {
+            const optValue = parseInt(anonymousSavedOptimization, 10);
+            if (!isNaN(optValue) && optValue >= 0) {
+              localStorage.setItem(optKey, optValue.toString());
+              console.log('迁移优化次数:', optValue);
+              migrated = true;
+            }
+          }
+          
+          // 迁移后重新加载值
+          if (migrated) {
+            const newSavedEvaluation = localStorage.getItem(evalKey);
+            const newSavedOptimization = localStorage.getItem(optKey);
+            // 处理评估次数
+            if (newSavedEvaluation !== null) {
+              const evalValue = parseInt(newSavedEvaluation, 10);
+              if (!isNaN(evalValue) && evalValue >= 0) {
+                setEvaluationRemaining(evalValue);
+                console.log('设置迁移后的评估次数:', evalValue);
+              } else {
+                console.warn('迁移后评估次数无效，重置为默认值');
+                setEvaluationRemaining(2);
+                localStorage.setItem(evalKey, '2');
+              }
+            } else {
+              console.log('迁移后无评估次数，设置为默认值2');
+              setEvaluationRemaining(2);
+              localStorage.setItem(evalKey, '2');
+            }
+            
+            // 处理优化次数
+            if (newSavedOptimization !== null) {
+              const optValue = parseInt(newSavedOptimization, 10);
+              if (!isNaN(optValue) && optValue >= 0) {
+                setOptimizationRemaining(optValue);
+                console.log('设置迁移后的优化次数:', optValue);
+              } else {
+                console.warn('迁移后优化次数无效，重置为默认值');
+                setOptimizationRemaining(2);
+                localStorage.setItem(optKey, '2');
+              }
+            } else {
+              console.log('迁移后无优化次数，设置为默认值2');
+              setOptimizationRemaining(2);
+              localStorage.setItem(optKey, '2');
+            }
+          }
+        }
+        
+        // 如果没有迁移，使用原有的逻辑
+        if (!migrated) {
+          // 处理评估次数
+          if (savedEvaluation !== null) {
+            const evalValue = parseInt(savedEvaluation, 10);
+            if (!isNaN(evalValue) && evalValue >= 0) {
+              setEvaluationRemaining(evalValue);
+              console.log('设置评估次数:', evalValue);
+            } else {
+              // 值无效，设置为默认值
+              console.warn('评估次数无效，重置为默认值');
+              setEvaluationRemaining(2);
+              localStorage.setItem(evalKey, '2');
+            }
+          } else {
+            // 无保存的评估次数，设置为默认值2
+            console.log('无保存的评估次数，设置为默认值2');
+            setEvaluationRemaining(2);
+            localStorage.setItem(evalKey, '2');
+          }
+          
+          // 处理优化次数
+          if (savedOptimization !== null) {
+            const optValue = parseInt(savedOptimization, 10);
+            if (!isNaN(optValue) && optValue >= 0) {
+              setOptimizationRemaining(optValue);
+              console.log('设置优化次数:', optValue);
+            } else {
+              // 值无效，设置为默认值
+              console.warn('优化次数无效，重置为默认值');
+              setOptimizationRemaining(2);
+              localStorage.setItem(optKey, '2');
+            }
+          } else {
+            // 无保存的优化次数，设置为默认值2
+            console.log('无保存的优化次数，设置为默认值2');
             setOptimizationRemaining(2);
             localStorage.setItem(optKey, '2');
           }
-        } else {
-          // 无保存的优化次数，设置为默认值2
-          console.log('无保存的优化次数，设置为默认值2');
-          setOptimizationRemaining(2);
-          localStorage.setItem(optKey, '2');
         }
       }
     } catch (error) {
@@ -175,6 +234,100 @@ export default function DashboardPage() {
     }
     
     setIsLoadingCounts(false); // 加载完成
+  }, [isAuthenticated, isAuthLoading]);
+
+  // 修复开发者代码兑换错误数据（针对万柏用户的问题）
+  useEffect(() => {
+    if (isAuthLoading) return; // 等待认证状态加载完成
+    
+    try {
+      const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+      const redeemedKey = `developerModeRedeemed_${userId}`;
+      const alreadyRedeemed = localStorage.getItem(redeemedKey) === 'true';
+      
+      // 只有已兑换开发者代码的用户才需要检查修复
+      if (!alreadyRedeemed) return;
+      
+      // 确保开发者模式固定标志已设置
+      localStorage.setItem(`developerModeFixed_${userId}`, 'true');
+      
+      const evalKey = `evaluationRemaining_${userId}`;
+      const optKey = `optimizationRemaining_${userId}`;
+      const totalEvalKey = `totalEvaluations_${userId}`;
+      const totalOptKey = `totalOptimizations_${userId}`;
+      
+      const currentEval = parseInt(localStorage.getItem(evalKey) || '0', 10);
+      const currentOpt = parseInt(localStorage.getItem(optKey) || '0', 10);
+      const currentTotalEval = parseInt(localStorage.getItem(totalEvalKey) || '0', 10);
+      const currentTotalOpt = parseInt(localStorage.getItem(totalOptKey) || '0', 10);
+      
+      // 检测错误情况：总使用次数异常高（>=5000）而剩余次数为0
+      // 这是旧版兑换逻辑的错误，应该修复
+      const needsFix = (currentTotalEval >= 5000 && currentEval === 0) || 
+                       (currentTotalOpt >= 5000 && currentOpt === 0);
+      
+      if (needsFix) {
+        console.log('Dashboard: 检测到开发者代码兑换数据错误，开始修复...');
+        
+        // 修复逻辑：将总使用次数减去5000（还原错误增加的部分）
+        // 将剩余次数设置为5000（开发者代码应给的次数）
+        const fixedTotalEval = Math.max(0, currentTotalEval - 5000);
+        const fixedTotalOpt = Math.max(0, currentTotalOpt - 5000);
+        const fixedEval = 5000;
+        const fixedOpt = 5000;
+        
+        localStorage.setItem(evalKey, fixedEval.toString());
+        localStorage.setItem(optKey, fixedOpt.toString());
+        localStorage.setItem(totalEvalKey, fixedTotalEval.toString());
+        localStorage.setItem(totalOptKey, fixedTotalOpt.toString());
+        
+        console.log('Dashboard: 数据修复完成：', {
+          评估剩余次数: fixedEval,
+          优化剩余次数: fixedOpt,
+          总评估次数: fixedTotalEval,
+          总优化次数: fixedTotalOpt
+        });
+        
+        // 更新状态以刷新显示
+        setEvaluationRemaining(fixedEval);
+        setOptimizationRemaining(fixedOpt);
+      }
+    } catch (err) {
+      console.error('Dashboard: 修复开发者代码数据时出错:', err);
+    }
+  }, [isAuthenticated, isAuthLoading]);
+
+  // 确保开发者模式固定5000次
+  useEffect(() => {
+    if (isAuthLoading) return; // 等待认证状态加载完成
+    
+    try {
+      const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+      const developerModeFixed = localStorage.getItem(`developerModeFixed_${userId}`) === 'true';
+      
+      // 如果不是开发者模式，跳过
+      if (!developerModeFixed) return;
+      
+      const evalKey = `evaluationRemaining_${userId}`;
+      const optKey = `optimizationRemaining_${userId}`;
+      
+      const currentEval = parseInt(localStorage.getItem(evalKey) || '0', 10);
+      const currentOpt = parseInt(localStorage.getItem(optKey) || '0', 10);
+      
+      // 如果剩余次数不是5000，强制设置为5000
+      if (currentEval !== 5000 || currentOpt !== 5000) {
+        console.log('Dashboard: 开发者模式，强制设置剩余次数为5000');
+        
+        localStorage.setItem(evalKey, '5000');
+        localStorage.setItem(optKey, '5000');
+        
+        // 更新状态以刷新显示
+        setEvaluationRemaining(5000);
+        setOptimizationRemaining(5000);
+      }
+    } catch (err) {
+      console.error('Dashboard: 确保开发者模式固定次数时出错:', err);
+    }
   }, [isAuthenticated, isAuthLoading]);
 
   // 保存使用次数到localStorage
@@ -465,8 +618,14 @@ export default function DashboardPage() {
       return;
     }
 
-    // 减少评估次数
-    setEvaluationRemaining(prev => prev - 1);
+    // 检查是否为开发者模式（固定次数）
+    const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+    const isDeveloperMode = localStorage.getItem(`developerModeFixed_${userId}`) === 'true';
+    
+    // 减少评估次数（开发者模式不扣减）
+    if (!isDeveloperMode) {
+      setEvaluationRemaining(prev => prev - 1);
+    }
     
     // 执行手动评估
     performEvaluation(true);
@@ -612,8 +771,14 @@ export default function DashboardPage() {
       return;
     }
 
-    // 减少优化次数
-    setOptimizationRemaining(prev => prev - 1);
+    // 检查是否为开发者模式（固定次数）
+    const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+    const isDeveloperMode = localStorage.getItem(`developerModeFixed_${userId}`) === 'true';
+    
+    // 减少优化次数（开发者模式不扣减）
+    if (!isDeveloperMode) {
+      setOptimizationRemaining(prev => prev - 1);
+    }
 
     // 设置AI状态
     setAiState('processing');

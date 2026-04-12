@@ -201,7 +201,7 @@ export default function PaymentPage({ params }: { params: Promise<{ plan: string
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* 套餐详情卡片 */}
             <div className="lg:col-span-2 space-y-8">
-              <Card className="relative overflow-hidden border-2 border-primary/20 hover:border-primary/30 transition-all duration-300">
+              <Card className="relative overflow-hidden border-2 border-primary/20 hover:border-primary/30 transition-all duration-300 hover:-translate-y-2">
                 {/* 装饰性背景 */}
                 <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-gradient-to-br from-primary/5 to-accent/5 blur-3xl -translate-y-32 translate-x-32" />
                 
@@ -268,7 +268,7 @@ export default function PaymentPage({ params }: { params: Promise<{ plan: string
               </Card>
 
               {/* 微信支付说明 */}
-              <Card className="border-2 border-emerald-500/20">
+              <Card className="border-2 border-emerald-500/20 hover:border-emerald-500/40 transition-all duration-300 hover:-translate-y-2">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3">
                     <MessageSquare className="h-6 w-6 text-emerald-500" />
@@ -364,7 +364,7 @@ export default function PaymentPage({ params }: { params: Promise<{ plan: string
             {/* 订单摘要和用户信息 */}
             <div className="space-y-6">
               {/* 用户信息 */}
-              <Card className="border-primary/10">
+              <Card className="border-primary/10 hover:border-primary/30 transition-all duration-300 hover:-translate-y-2">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3">
                     <UserCheck className="h-5 w-5 text-primary" />
@@ -388,7 +388,7 @@ export default function PaymentPage({ params }: { params: Promise<{ plan: string
               </Card>
               
               {/* 订单摘要 */}
-              <Card className="border-primary/10">
+              <Card className="border-primary/10 hover:border-primary/30 transition-all duration-300 hover:-translate-y-1">
                 <CardHeader>
                   <CardTitle>订单摘要</CardTitle>
                 </CardHeader>

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-client";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { AlertCircle, Loader2, User, Mail, Hash, Calendar, Clock, LogOut, CreditCard, BarChart3, History, Settings as SettingsIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +40,11 @@ export default function SettingsPage() {
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [developerCode, setDeveloperCode] = useState('');
+  const [isRedeeming, setIsRedeeming] = useState(false);
+  const [redeemMessage, setRedeemMessage] = useState<string | null>(null);
+  const [redeemError, setRedeemError] = useState<string | null>(null);
+  const [isDeveloperModeRedeemed, setIsDeveloperModeRedeemed] = useState(false);
 
   // 加载使用统计
   useEffect(() => {
@@ -46,6 +53,73 @@ export default function SettingsPage() {
     try {
       // 基于用户ID构建存储key，实现数据隔离
       const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+      
+      // 如果是登录用户，检查是否有匿名用户的数据需要迁移
+      if (isAuthenticated) {
+        const anonymousEvalKey = 'evaluationRemaining_anonymous';
+        const anonymousOptKey = 'optimizationRemaining_anonymous';
+        const anonymousTotalEvalKey = 'totalEvaluations_anonymous';
+        const anonymousTotalOptKey = 'totalOptimizations_anonymous';
+        const anonymousLastUsedKey = 'lastUsed_anonymous';
+        const anonymousDeveloperRedeemedKey = 'developerModeRedeemed_anonymous';
+        const anonymousHistoryKey = 'redemptionHistory_anonymous';
+        
+        const anonymousSavedEvaluation = localStorage.getItem(anonymousEvalKey);
+        const anonymousSavedOptimization = localStorage.getItem(anonymousOptKey);
+        const anonymousSavedTotalEval = localStorage.getItem(anonymousTotalEvalKey);
+        const anonymousSavedTotalOpt = localStorage.getItem(anonymousTotalOptKey);
+        const anonymousSavedLastUsed = localStorage.getItem(anonymousLastUsedKey);
+        const anonymousSavedDeveloperRedeemed = localStorage.getItem(anonymousDeveloperRedeemedKey);
+        const anonymousSavedHistory = localStorage.getItem(anonymousHistoryKey);
+        
+        // 如果有匿名用户数据，迁移到认证用户
+        if (anonymousSavedEvaluation !== null || anonymousSavedOptimization !== null) {
+          console.log('设置页面：发现匿名用户数据，迁移到认证用户');
+          
+          // 迁移评估次数相关数据
+          if (anonymousSavedEvaluation !== null) {
+            const evalValue = parseInt(anonymousSavedEvaluation, 10);
+            if (!isNaN(evalValue) && evalValue >= 0) {
+              localStorage.setItem(`evaluationRemaining_${userId}`, evalValue.toString());
+            }
+          }
+          if (anonymousSavedOptimization !== null) {
+            const optValue = parseInt(anonymousSavedOptimization, 10);
+            if (!isNaN(optValue) && optValue >= 0) {
+              localStorage.setItem(`optimizationRemaining_${userId}`, optValue.toString());
+            }
+          }
+          
+          // 迁移总次数数据
+          if (anonymousSavedTotalEval !== null) {
+            const totalEvalValue = parseInt(anonymousSavedTotalEval, 10);
+            if (!isNaN(totalEvalValue) && totalEvalValue >= 0) {
+              localStorage.setItem(`totalEvaluations_${userId}`, totalEvalValue.toString());
+            }
+          }
+          if (anonymousSavedTotalOpt !== null) {
+            const totalOptValue = parseInt(anonymousSavedTotalOpt, 10);
+            if (!isNaN(totalOptValue) && totalOptValue >= 0) {
+              localStorage.setItem(`totalOptimizations_${userId}`, totalOptValue.toString());
+            }
+          }
+          
+          // 迁移最后使用时间
+          if (anonymousSavedLastUsed !== null) {
+            localStorage.setItem(`lastUsed_${userId}`, anonymousSavedLastUsed);
+          }
+          
+          // 迁移开发者模式兑换状态
+          if (anonymousSavedDeveloperRedeemed !== null) {
+            localStorage.setItem(`developerModeRedeemed_${userId}`, anonymousSavedDeveloperRedeemed);
+          }
+          
+          // 迁移兑换历史
+          if (anonymousSavedHistory !== null) {
+            localStorage.setItem(`redemptionHistory_${userId}`, anonymousSavedHistory);
+          }
+        }
+      }
       
       // 从localStorage读取剩余次数（与dashboard页面保持一致）
       const evalKey = `evaluationRemaining_${userId}`;
@@ -87,6 +161,134 @@ export default function SettingsPage() {
       setError("加载使用统计时发生错误");
     } finally {
       setIsLoadingStats(false);
+    }
+  }, [isAuthenticated]);
+
+  // 检查开发者模式兑换状态
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+      const redeemedKey = `developerModeRedeemed_${userId}`;
+      const alreadyRedeemed = localStorage.getItem(redeemedKey) === 'true';
+      setIsDeveloperModeRedeemed(alreadyRedeemed);
+    } catch (err) {
+      console.error("检查开发者模式兑换状态失败:", err);
+    }
+  }, [isAuthenticated]);
+
+  // 修复开发者代码兑换错误数据（针对万柏用户的问题）
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    
+    try {
+      const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+      const redeemedKey = `developerModeRedeemed_${userId}`;
+      const alreadyRedeemed = localStorage.getItem(redeemedKey) === 'true';
+      
+      // 只有已兑换开发者代码的用户才需要检查修复
+      if (!alreadyRedeemed) return;
+      
+      // 确保开发者模式固定标志已设置
+      localStorage.setItem(`developerModeFixed_${userId}`, 'true');
+      
+      const evalKey = `evaluationRemaining_${userId}`;
+      const optKey = `optimizationRemaining_${userId}`;
+      const totalEvalKey = `totalEvaluations_${userId}`;
+      const totalOptKey = `totalOptimizations_${userId}`;
+      
+      const currentEval = parseInt(localStorage.getItem(evalKey) || '0', 10);
+      const currentOpt = parseInt(localStorage.getItem(optKey) || '0', 10);
+      const currentTotalEval = parseInt(localStorage.getItem(totalEvalKey) || '0', 10);
+      const currentTotalOpt = parseInt(localStorage.getItem(totalOptKey) || '0', 10);
+      
+      // 检测错误情况：总使用次数异常高（>=5000）而剩余次数为0
+      // 这是旧版兑换逻辑的错误，应该修复
+      const needsFix = (currentTotalEval >= 5000 && currentEval === 0) || 
+                       (currentTotalOpt >= 5000 && currentOpt === 0);
+      
+      if (needsFix) {
+        console.log('检测到开发者代码兑换数据错误，开始修复...');
+        
+        // 修复逻辑：将总使用次数减去5000（还原错误增加的部分）
+        // 将剩余次数设置为5000（开发者代码应给的次数）
+        const fixedTotalEval = Math.max(0, currentTotalEval - 5000);
+        const fixedTotalOpt = Math.max(0, currentTotalOpt - 5000);
+        const fixedEval = 5000;
+        const fixedOpt = 5000;
+        
+        localStorage.setItem(evalKey, fixedEval.toString());
+        localStorage.setItem(optKey, fixedOpt.toString());
+        localStorage.setItem(totalEvalKey, fixedTotalEval.toString());
+        localStorage.setItem(totalOptKey, fixedTotalOpt.toString());
+        
+        console.log('数据修复完成：', {
+          评估剩余次数: fixedEval,
+          优化剩余次数: fixedOpt,
+          总评估次数: fixedTotalEval,
+          总优化次数: fixedTotalOpt
+        });
+        
+        // 重新加载使用统计以更新显示
+        const evaluationRemaining = parseInt(localStorage.getItem(evalKey) || "2", 10);
+        const optimizationRemaining = parseInt(localStorage.getItem(optKey) || "2", 10);
+        const totalEvaluations = parseInt(localStorage.getItem(totalEvalKey) || "0", 10);
+        const totalOptimizations = parseInt(localStorage.getItem(totalOptKey) || "0", 10);
+        
+        setUsageStats(prev => ({
+          ...prev,
+          evaluationRemaining,
+          optimizationRemaining,
+          totalEvaluations,
+          totalOptimizations,
+        }));
+      }
+    } catch (err) {
+      console.error("修复开发者代码数据时出错:", err);
+    }
+  }, [isAuthenticated]);
+
+  // 确保开发者模式固定5000次
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+      const developerModeFixed = localStorage.getItem(`developerModeFixed_${userId}`) === 'true';
+      
+      // 如果不是开发者模式，跳过
+      if (!developerModeFixed) return;
+      
+      const evalKey = `evaluationRemaining_${userId}`;
+      const optKey = `optimizationRemaining_${userId}`;
+      
+      const currentEval = parseInt(localStorage.getItem(evalKey) || '0', 10);
+      const currentOpt = parseInt(localStorage.getItem(optKey) || '0', 10);
+      
+      // 如果剩余次数不是5000，强制设置为5000
+      if (currentEval !== 5000 || currentOpt !== 5000) {
+        console.log('Settings: 开发者模式，强制设置剩余次数为5000');
+        
+        localStorage.setItem(evalKey, '5000');
+        localStorage.setItem(optKey, '5000');
+        
+        // 重新加载使用统计以更新显示
+        const evaluationRemaining = parseInt(localStorage.getItem(evalKey) || "2", 10);
+        const optimizationRemaining = parseInt(localStorage.getItem(optKey) || "2", 10);
+        const totalEvaluations = parseInt(localStorage.getItem(`totalEvaluations_${userId}`) || "0", 10);
+        const totalOptimizations = parseInt(localStorage.getItem(`totalOptimizations_${userId}`) || "0", 10);
+        
+        setUsageStats(prev => ({
+          ...prev,
+          evaluationRemaining,
+          optimizationRemaining,
+          totalEvaluations,
+          totalOptimizations,
+        }));
+      }
+    } catch (err) {
+      console.error("Settings: 确保开发者模式固定次数时出错:", err);
     }
   }, [isAuthenticated]);
 
@@ -147,6 +349,98 @@ export default function SettingsPage() {
       setError("退出登录失败，请重试");
     } finally {
       setIsSigningOut(false);
+    }
+  };
+
+  // 处理开发者代码兑换
+  const handleRedeemDeveloperCode = async () => {
+    if (!developerCode.trim()) {
+      setRedeemError("请输入开发者代码");
+      return;
+    }
+
+    setIsRedeeming(true);
+    setRedeemError(null);
+    setRedeemMessage(null);
+
+    try {
+      // 基于用户ID构建存储key，实现数据隔离
+      const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+      const redeemedKey = `developerModeRedeemed_${userId}`;
+
+      // 检查是否已兑换过
+      const alreadyRedeemed = localStorage.getItem(redeemedKey);
+      if (alreadyRedeemed === 'true') {
+        setRedeemError("您已经兑换过开发者代码，无法重复兑换");
+        return;
+      }
+
+      // 验证开发者代码
+      if (developerCode.trim() !== 'lby1998lamp') {
+        setRedeemError("开发者代码无效，请检查后重试");
+        return;
+      }
+
+      // 获取当前的剩余次数和总次数
+      const evalKey = `evaluationRemaining_${userId}`;
+      const optKey = `optimizationRemaining_${userId}`;
+      const totalEvalKey = `totalEvaluations_${userId}`;
+      const totalOptKey = `totalOptimizations_${userId}`;
+
+      const currentEval = parseInt(localStorage.getItem(evalKey) || '0', 10);
+      const currentOpt = parseInt(localStorage.getItem(optKey) || '0', 10);
+      const currentTotalEval = parseInt(localStorage.getItem(totalEvalKey) || '0', 10);
+      const currentTotalOpt = parseInt(localStorage.getItem(totalOptKey) || '0', 10);
+
+      // 开发者模式：永久固定5000次（即使使用也不会减少）
+      const newEval = 5000; // 直接设置为5000，不累加
+      const newOpt = 5000;  // 直接设置为5000，不累加
+      // 注意：totalEvaluations和totalOptimizations不应增加，因为这是已使用次数的统计
+      const newTotalEval = currentTotalEval; // 保持不变
+      const newTotalOpt = currentTotalOpt;   // 保持不变
+      // 标记为开发者模式（固定次数）
+      localStorage.setItem(`developerModeFixed_${userId}`, 'true');
+
+      // 保存到localStorage
+      localStorage.setItem(evalKey, newEval.toString());
+      localStorage.setItem(optKey, newOpt.toString());
+      localStorage.setItem(totalEvalKey, newTotalEval.toString());
+      localStorage.setItem(totalOptKey, newTotalOpt.toString());
+      
+      // 标记为已兑换
+      localStorage.setItem(redeemedKey, 'true');
+
+      // 更新兑换历史记录
+      const historyKey = `redemptionHistory_${userId}`;
+      const savedHistory = localStorage.getItem(historyKey);
+      const history: RedemptionHistory[] = savedHistory ? JSON.parse(savedHistory) : [];
+      const newHistoryItem: RedemptionHistory = {
+        code: developerCode.trim(),
+        type: "premium", // 使用premium类型表示开发者代码
+        amount: 5000,
+        redeemedAt: new Date().toISOString(),
+      };
+      history.unshift(newHistoryItem); // 添加到开头
+      localStorage.setItem(historyKey, JSON.stringify(history));
+
+      // 更新状态以刷新显示
+      setUsageStats(prev => ({
+        ...prev,
+        evaluationRemaining: newEval,
+        optimizationRemaining: newOpt,
+        totalEvaluations: newTotalEval,
+        totalOptimizations: newTotalOpt,
+      }));
+      setRedemptionHistory(history);
+      setDeveloperCode('');
+      setIsDeveloperModeRedeemed(true);
+      setRedeemMessage("开发者代码兑换成功！已获得5,000次评估和5,000次优化次数。");
+
+    } catch (err) {
+      console.error("兑换开发者代码失败:", err);
+      setRedeemError("兑换过程中发生错误，请重试");
+    } finally {
+      setIsRedeeming(false);
     }
   };
 
@@ -509,6 +803,96 @@ export default function SettingsPage() {
                     <a href="/legal/terms">服务条款</a>
                   </Button>
                 </div>
+
+                {/* 开发者模式 */}
+                 <div className="pt-4 border-t">
+                   <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                     <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                     开发者模式
+                   </h3>
+                   
+                   {isDeveloperModeRedeemed ? (
+                     // 已兑换状态
+                     <div className="space-y-3">
+                       <div className="rounded-lg border border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-900/20 p-4">
+                         <div className="flex items-center gap-3">
+                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+                             <svg className="h-4 w-4 text-green-600 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                             </svg>
+                           </div>
+                           <div>
+                             <p className="text-sm font-medium text-green-700 dark:text-green-300">开发者模式已激活</p>
+                             <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                               您已永久获得5,000次评估和5,000次优化次数。
+                             </p>
+                           </div>
+                         </div>
+                       </div>
+                       <p className="text-xs text-muted-foreground">
+                         开发者代码已兑换，感谢您使用开发者模式。
+                       </p>
+                     </div>
+                   ) : (
+                     // 未兑换状态
+                     <>
+                       <p className="text-xs text-muted-foreground mb-4">
+                         输入开发者代码可永久获得5,000次评估和5,000次优化次数。
+                       </p>
+                       
+                       <div className="space-y-3">
+                         <div className="space-y-2">
+                           <Label htmlFor="developer-code" className="text-sm">
+                             开发者代码
+                           </Label>
+                           <Input
+                             id="developer-code"
+                             type="text"
+                             placeholder="输入开发者代码"
+                             value={developerCode}
+                             onChange={(e) => setDeveloperCode(e.target.value)}
+                             className="font-mono"
+                             disabled={isRedeeming}
+                           />
+                         </div>
+                         
+                         {redeemMessage && (
+                           <div className="rounded-lg border border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-900/20 p-3">
+                             <p className="text-sm text-green-700 dark:text-green-300">{redeemMessage}</p>
+                           </div>
+                         )}
+                         
+                         {redeemError && (
+                           <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3">
+                             <p className="text-sm text-destructive">{redeemError}</p>
+                           </div>
+                         )}
+                         
+                         <Button
+                           variant="default"
+                           className="w-full"
+                           onClick={handleRedeemDeveloperCode}
+                           disabled={isRedeeming || !developerCode.trim()}
+                         >
+                           {isRedeeming ? (
+                             <>
+                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                               兑换中...
+                             </>
+                           ) : (
+                             <>
+                               兑换开发者代码
+                             </>
+                           )}
+                         </Button>
+                       </div>
+                       
+                       <p className="text-xs text-muted-foreground mt-3">
+                         开发者代码仅限使用一次，兑换后永久有效。
+                       </p>
+                     </>
+                   )}
+                 </div>
 
                 {/* 退出登录按钮 */}
                 <div className="pt-4 border-t">
