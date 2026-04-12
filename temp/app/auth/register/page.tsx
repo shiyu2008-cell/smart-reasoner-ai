@@ -26,16 +26,20 @@ export default function RegisterPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    
-    // 实时验证密码匹配
-    if (name === "password" || name === "confirmPassword") {
-      if (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword) {
-        setPasswordError("密码不匹配");
-      } else {
-        setPasswordError("");
+    setFormData((prev) => {
+      const newFormData = { ...prev, [name]: value };
+      
+      // 实时验证密码匹配
+      if (name === "password" || name === "confirmPassword") {
+        if (newFormData.password && newFormData.confirmPassword && newFormData.password !== newFormData.confirmPassword) {
+          setPasswordError("密码不匹配");
+        } else {
+          setPasswordError("");
+        }
       }
-    }
+      
+      return newFormData;
+    });
   };
 
   const validateForm = () => {

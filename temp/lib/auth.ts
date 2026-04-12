@@ -34,22 +34,22 @@ export const auth = betterAuth({
       },
       evaluation_credits: {
         type: "number",
-        required: true,
+        required: false,
         default: 3,
       },
       optimization_credits: {
         type: "number",
-        required: true,
+        required: false,
         default: 0,
       },
       total_evaluations: {
         type: "number",
-        required: true,
+        required: false,
         default: 0,
       },
       total_optimizations: {
         type: "number",
-        required: true,
+        required: false,
         default: 0,
       },
     },

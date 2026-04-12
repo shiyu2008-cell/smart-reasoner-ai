@@ -9,6 +9,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
+import { auth } from '@/lib/auth'
+import { creditService } from '@/lib/credit-service'
 
 // 兑换码数据接口
 interface RedeemRequest {
@@ -24,6 +26,8 @@ interface RedeemResponse {
     optimizationAdded: number;
     code: string;
     rewardType: string;
+    remainingEvaluationCredits?: number;
+    remainingOptimizationCredits?: number;
   };
 }
 
@@ -37,16 +41,8 @@ const VALID_CODES: Record<string, { evaluation: number; optimization: number; de
   // 可以添加更多兑换码
 };
 
-// 简单的内存存储，记录已使用的兑换码（实际生产环境应使用数据库）
-// 这里使用IP地址作为用户标识（简化方案）
-const redeemedCodes = new Map<string, Set<string>>(); // IP -> Set<code>
-
-// 获取客户端IP（简化版本）
-function getClientIp(request: NextRequest): string {
-  const forwarded = request.headers.get('x-forwarded-for');
-  const ip = forwarded ? forwarded.split(',')[0].trim() : 'unknown';
-  return ip || 'unknown';
-}
+// 内存存储兑换记录（生产环境应使用数据库）
+const memoryRedeemRecords = new Map<string, Set<string>>(); // userId -> Set<code>
 
 // API需要动态处理
 export const dynamic = 'force-dynamic';
@@ -57,6 +53,24 @@ export const runtime = 'nodejs';
  */
 export async function POST(request: NextRequest) {
   try {
+    // 验证用户会话
+    const session = await auth.api.getSession({
+      headers: Object.fromEntries(request.headers),
+    });
+    
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: '未授权访问',
+          message: '请先登录后再使用兑换码功能'
+        } as RedeemResponse,
+        { status: 401 }
+      );
+    }
+
+    const userId = session.user.id;
+    
     // 解析请求体
     const body: RedeemRequest = await request.json();
     
@@ -73,9 +87,8 @@ export async function POST(request: NextRequest) {
     }
 
     const code = body.code.trim();
-    const clientIp = getClientIp(request);
     
-    console.log('兑换码API请求:', { code, clientIp });
+    console.log('兑换码API请求:', { userId, code });
 
     // 检查兑换码格式
     if (code.length < 4 || code.length > 50) {
@@ -102,25 +115,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 检查兑换码是否已被当前用户使用（基于IP的简化方案）
-    if (clientIp !== 'unknown') {
-      const userRedeemedCodes = redeemedCodes.get(clientIp) || new Set<string>();
-      if (userRedeemedCodes.has(code)) {
-        return NextResponse.json(
-          { 
-            success: false,
-            error: '兑换码已使用',
-            message: '您已使用过此兑换码，每个用户只能使用一次'
-          } as RedeemResponse,
-          { status: 409 }
-        );
-      }
-      
-      // 记录兑换码使用
-      userRedeemedCodes.add(code);
-      redeemedCodes.set(clientIp, userRedeemedCodes);
+    // 检查兑换码是否已被当前用户使用（使用内存存储）
+    const userRedeemedCodes = memoryRedeemRecords.get(userId) || new Set<string>();
+    const hasRedeemed = userRedeemedCodes.has(code);
+    if (hasRedeemed) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: '兑换码已使用',
+          message: '您已使用过此兑换码，每个用户只能使用一次'
+        } as RedeemResponse,
+        { status: 409 }
+      );
     }
 
+    // 调用次数服务添加次数
+    const creditResult = await creditService.addCredits(
+      userId,
+      validCode.evaluation,
+      validCode.optimization
+    );
+    
+    if (!creditResult.success) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: '次数添加失败',
+          message: creditResult.message || '添加次数时发生错误，请稍后重试'
+        } as RedeemResponse,
+        { status: 500 }
+      );
+    }
+    
+    // 创建兑换记录（更新内存存储）
+    const updatedUserRedeemedCodes = memoryRedeemRecords.get(userId) || new Set<string>();
+    updatedUserRedeemedCodes.add(code);
+    memoryRedeemRecords.set(userId, updatedUserRedeemedCodes);
+    
     // 返回成功响应
     return NextResponse.json({
       success: true,
@@ -130,7 +161,9 @@ export async function POST(request: NextRequest) {
         optimizationAdded: validCode.optimization,
         code: code,
         rewardType: '次数礼包',
-        description: validCode.description
+        description: validCode.description,
+        remainingEvaluationCredits: creditResult.remainingEvaluationCredits,
+        remainingOptimizationCredits: creditResult.remainingOptimizationCredits
       },
       timestamp: new Date().toISOString()
     } as RedeemResponse);
@@ -178,7 +211,9 @@ export async function GET() {
           optimizationAdded: 'number',
           code: 'string',
           rewardType: 'string',
-          description: 'string'
+          description: 'string',
+          remainingEvaluationCredits: 'number (optional)',
+          remainingOptimizationCredits: 'number (optional)'
         },
         timestamp: 'string'
       }
@@ -189,7 +224,7 @@ export async function GET() {
       '使用次数限制',
       '错误友好提示'
     ],
-    note: '当前为演示版本，生产环境建议使用数据库存储兑换码使用记录'
+    note: '兑换码功能已集成用户认证、次数服务和兑换记录管理，支持数据库持久化存储'
   });
 }
 

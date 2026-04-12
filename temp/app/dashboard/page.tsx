@@ -50,7 +50,7 @@ export default function DashboardPage() {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
   // 兑换码相关状态
-  const [redeemCode, setRedeemCode] = useState<string>("万柏666");
+  const [redeemCode, setRedeemCode] = useState<string>("");
   const [isRedeeming, setIsRedeeming] = useState<boolean>(false);
   const [redeemError, setRedeemError] = useState<string | null>(null);
   const [redeemSuccess, setRedeemSuccess] = useState<string | null>(null);

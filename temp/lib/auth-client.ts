@@ -115,7 +115,14 @@ export function useSignUp() {
       setIsPending(true);
       setError(null);
       try {
-        const result = await authClient.signUp.email(credentials);
+        const data = { 
+          ...credentials, 
+          evaluation_credits: 3,
+          optimization_credits: 0,
+          total_evaluations: 0,
+          total_optimizations: 0
+        };
+        const result = await authClient.signUp.email(data);
         if (result.error) {
           throw new Error(result.error.message || '注册失败');
         }

@@ -10,6 +10,26 @@ import { evaluateResume, EvaluateResumeRequest } from '@/lib/ai-service';
 import { auth } from '@/lib/auth';
 import { deductCredits, CreditError } from '@/lib/credit-service';
 
+// 内存存储未登录用户的评估记录（设备级别限制）
+const anonymousEvaluations = new Set<string>();
+
+// 生成设备标识（基于IP和User-Agent）
+function getDeviceIdentifier(request: NextRequest): string {
+  const ip = request.ip || request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+  const userAgent = request.headers.get('user-agent') || 'unknown';
+  return `${ip}-${userAgent}`;
+}
+
+// 检查设备是否已使用过免费评估
+function hasDeviceUsedFreeEvaluation(deviceId: string): boolean {
+  return anonymousEvaluations.has(deviceId);
+}
+
+// 标记设备已使用免费评估
+function markDeviceUsedFreeEvaluation(deviceId: string): void {
+  anonymousEvaluations.add(deviceId);
+}
+
 // 评估API需要动态处理
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs'; // 或 'edge' 如果使用 Edge Runtime
@@ -22,23 +42,14 @@ export const runtime = 'nodejs'; // 或 'edge' 如果使用 Edge Runtime
  */
 export async function POST(request: NextRequest) {
   try {
-    // 验证用户会话
+    // 获取用户会话
     const session = await auth.api.getSession({
       headers: Object.fromEntries(request.headers),
     });
     
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: '未授权访问',
-          message: '请先登录后再使用评估服务'
-        },
-        { status: 401 }
-      );
-    }
-
-    const userId = session.user.id;
+    const userId = session?.user?.id;
+    let creditResult = null;
+    let deviceId = null;
     
     // 解析请求体
     const body: EvaluateResumeRequest = await request.json();
@@ -67,40 +78,74 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('简历评估API请求:', {
-      userId,
+      userId: userId || 'anonymous',
       resumeLength: body.resume.length,
       jobDescriptionLength: body.jobDescription.length,
       hasConfig: !!body.config
     });
 
-    // 扣减评估次数
-    const creditResult = await deductCredits(userId, 'evaluate', 1);
-    
-    if (!creditResult.success) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: '次数不足',
-          message: creditResult.message || '评估次数不足，请购买套餐或等待重置',
-          remainingEvaluationCredits: creditResult.remainingEvaluationCredits,
-          remainingOptimizationCredits: creditResult.remainingOptimizationCredits
-        },
-        { status: 403 }
-      );
+    // 处理次数扣减逻辑
+    if (userId) {
+      // 登录用户：使用信用系统扣减次数
+      creditResult = await deductCredits(userId, 'evaluate', 1);
+      
+      if (!creditResult.success) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: '次数不足',
+            message: creditResult.message || '评估次数不足，请购买套餐或等待重置',
+            remainingEvaluationCredits: creditResult.remainingEvaluationCredits,
+            remainingOptimizationCredits: creditResult.remainingOptimizationCredits
+          },
+          { status: 403 }
+        );
+      }
+    } else {
+      // 未登录用户：检查设备是否已使用过免费评估
+      deviceId = getDeviceIdentifier(request);
+      
+      if (hasDeviceUsedFreeEvaluation(deviceId)) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: '免费次数已用完',
+            message: '您已使用过免费评估机会。请登录账号获取更多评估次数，或使用其他设备体验。',
+            remainingEvaluationCredits: 0,
+            remainingOptimizationCredits: 0
+          },
+          { status: 403 }
+        );
+      }
+      
+      // 标记设备已使用免费评估
+      markDeviceUsedFreeEvaluation(deviceId);
+      
+      // 为未登录用户创建模拟的creditResult
+      creditResult = {
+        success: true,
+        remainingEvaluationCredits: 0,
+        remainingOptimizationCredits: 0,
+        message: '免费评估机会已使用'
+      };
     }
 
     // 获取评估结果
     const evaluationResult = await evaluateResume(body);
 
     // 返回结构化评估结果，包含剩余次数信息
+    const creditsInfo = {
+      remainingEvaluationCredits: creditResult.remainingEvaluationCredits,
+      remainingOptimizationCredits: creditResult.remainingOptimizationCredits,
+      message: userId 
+        ? `评估成功，剩余 ${creditResult.remainingEvaluationCredits} 次评估次数`
+        : '免费评估成功！登录后可获得更多评估次数。'
+    };
+    
     return NextResponse.json({
       success: true,
       data: evaluationResult,
-      credits: {
-        remainingEvaluationCredits: creditResult.remainingEvaluationCredits,
-        remainingOptimizationCredits: creditResult.remainingOptimizationCredits,
-        message: `评估成功，剩余 ${creditResult.remainingEvaluationCredits} 次评估次数`
-      },
+      credits: creditsInfo,
       timestamp: new Date().toISOString()
     });
 
