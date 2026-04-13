@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
     });
     
     const userId = session?.user?.id;
+    const isDeveloperMode = request.headers.get('X-Developer-Mode') === 'true';
     let creditResult = null;
     let deviceId = null;
     
@@ -87,47 +88,69 @@ export async function POST(request: NextRequest) {
     // 处理次数扣减逻辑
     if (userId) {
       // 登录用户：使用信用系统扣减次数
-      creditResult = await deductCredits(userId, 'evaluate', 1);
-      
-      if (!creditResult.success) {
-        return NextResponse.json(
-          { 
-            success: false,
-            error: '次数不足',
-            message: creditResult.message || '评估次数不足，请购买套餐或等待重置',
-            remainingEvaluationCredits: creditResult.remainingEvaluationCredits,
-            remainingOptimizationCredits: creditResult.remainingOptimizationCredits
-          },
-          { status: 403 }
-        );
+      if (isDeveloperMode) {
+        // 开发者模式：跳过次数检查，返回模拟的成功结果
+        creditResult = {
+          success: true,
+          remainingEvaluationCredits: 5000,
+          remainingOptimizationCredits: 5000,
+          message: '开发者模式，次数固定为5000'
+        };
+      } else {
+        // 非开发者模式：正常扣减次数
+        creditResult = await deductCredits(userId, 'evaluate', 1);
+        
+        if (!creditResult.success) {
+          return NextResponse.json(
+            { 
+              success: false,
+              error: '次数不足',
+              message: creditResult.message || '评估次数不足，请购买套餐或等待重置',
+              remainingEvaluationCredits: creditResult.remainingEvaluationCredits,
+              remainingOptimizationCredits: creditResult.remainingOptimizationCredits
+            },
+            { status: 403 }
+          );
+        }
       }
     } else {
       // 未登录用户：检查设备是否已使用过免费评估
-      deviceId = getDeviceIdentifier(request);
-      
-      if (hasDeviceUsedFreeEvaluation(deviceId)) {
-        return NextResponse.json(
-          { 
-            success: false,
-            error: '免费次数已用完',
-            message: '您已使用过免费评估机会。请登录账号获取更多评估次数，或使用其他设备体验。',
-            remainingEvaluationCredits: 0,
-            remainingOptimizationCredits: 0
-          },
-          { status: 403 }
-        );
+      if (isDeveloperMode) {
+        // 开发者模式：跳过次数检查，返回模拟的成功结果
+        creditResult = {
+          success: true,
+          remainingEvaluationCredits: 5000,
+          remainingOptimizationCredits: 5000,
+          message: '开发者模式，次数固定为5000'
+        };
+      } else {
+        // 非开发者模式：正常检查设备使用情况
+        deviceId = getDeviceIdentifier(request);
+        
+        if (hasDeviceUsedFreeEvaluation(deviceId)) {
+          return NextResponse.json(
+            { 
+              success: false,
+              error: '免费次数已用完',
+              message: '您已使用过免费评估机会。请登录账号获取更多评估次数，或使用其他设备体验。',
+              remainingEvaluationCredits: 0,
+              remainingOptimizationCredits: 0
+            },
+            { status: 403 }
+          );
+        }
+        
+        // 标记设备已使用免费评估
+        markDeviceUsedFreeEvaluation(deviceId);
+        
+        // 为未登录用户创建模拟的creditResult
+        creditResult = {
+          success: true,
+          remainingEvaluationCredits: 0,
+          remainingOptimizationCredits: 0,
+          message: '免费评估机会已使用'
+        };
       }
-      
-      // 标记设备已使用免费评估
-      markDeviceUsedFreeEvaluation(deviceId);
-      
-      // 为未登录用户创建模拟的creditResult
-      creditResult = {
-        success: true,
-        remainingEvaluationCredits: 0,
-        remainingOptimizationCredits: 0,
-        message: '免费评估机会已使用'
-      };
     }
 
     // 获取评估结果

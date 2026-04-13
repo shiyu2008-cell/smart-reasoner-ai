@@ -518,14 +518,25 @@ export default function DashboardPage() {
     try {
       console.log('开始调用评估API...', isManualTrigger ? '(手动触发)' : '(自动触发)');
       
+      // 检查是否为开发者模式（固定次数）
+      const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+      const isDeveloperMode = localStorage.getItem(`developerModeFixed_${userId}`) === 'true';
+      
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时
       
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // 如果是开发者模式，添加特殊头
+      if (isDeveloperMode) {
+        headers['X-Developer-Mode'] = 'true';
+      }
+      
       const response = await fetch('/api/evaluate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           resume,
           jobDescription,
@@ -797,11 +808,18 @@ export default function DashboardPage() {
       setHasReachedFinalAnswer(false);
 
       // 调用优化API
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // 如果是开发者模式，添加特殊头
+      if (isDeveloperMode) {
+        headers['X-Developer-Mode'] = 'true';
+      }
+      
       const response = await fetch('/api/optimize', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           resume,
           jobDescription,

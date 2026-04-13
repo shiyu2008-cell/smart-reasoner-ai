@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = session.user.id;
+    const isDeveloperMode = request.headers.get('X-Developer-Mode') === 'true';
     
     // 解析请求体
     const body: OptimizeResumeRequest = await request.json();
@@ -73,19 +74,32 @@ export async function POST(request: NextRequest) {
     });
 
     // 扣减优化次数
-    const creditResult = await deductCredits(userId, 'optimize', 1);
+    let creditResult;
     
-    if (!creditResult.success) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: '次数不足',
-          message: creditResult.message || '优化次数不足，请购买套餐或等待重置',
-          remainingEvaluationCredits: creditResult.remainingEvaluationCredits,
-          remainingOptimizationCredits: creditResult.remainingOptimizationCredits
-        },
-        { status: 403 }
-      );
+    if (isDeveloperMode) {
+      // 开发者模式：跳过次数检查，返回模拟的成功结果
+      creditResult = {
+        success: true,
+        remainingEvaluationCredits: 5000,
+        remainingOptimizationCredits: 5000,
+        message: '开发者模式，次数固定为5000'
+      };
+    } else {
+      // 非开发者模式：正常扣减次数
+      creditResult = await deductCredits(userId, 'optimize', 1);
+      
+      if (!creditResult.success) {
+        return NextResponse.json(
+          { 
+            success: false,
+            error: '次数不足',
+            message: creditResult.message || '优化次数不足，请购买套餐或等待重置',
+            remainingEvaluationCredits: creditResult.remainingEvaluationCredits,
+            remainingOptimizationCredits: creditResult.remainingOptimizationCredits
+          },
+          { status: 403 }
+        );
+      }
     }
 
     // 获取流式响应
