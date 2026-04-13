@@ -66,6 +66,19 @@ export default function DashboardPage() {
     
     console.log('加载使用次数，用户ID:', userId, '认证状态:', isAuthenticated);
     
+    // 首先检查开发者模式
+    const isDeveloperMode = localStorage.getItem(`developerModeFixed_${userId}`) === 'true';
+    if (isDeveloperMode) {
+      console.log('开发者模式用户，固定次数为5000');
+      setEvaluationRemaining(5000);
+      setOptimizationRemaining(5000);
+      // 确保localStorage中保存了正确的值
+      localStorage.setItem(evalKey, '5000');
+      localStorage.setItem(optKey, '5000');
+      setIsLoadingCounts(false);
+      return;
+    }
+    
     try {
       const savedEvaluation = localStorage.getItem(evalKey);
       const savedOptimization = localStorage.getItem(optKey);
@@ -89,9 +102,10 @@ export default function DashboardPage() {
             localStorage.setItem(evalKey, '0');
           }
         } else {
-          // 没有保存的值，设置为0
-          console.log('无保存的评估次数，设置为0');
-          setEvaluationRemaining(0);
+          // 没有保存的值，设置为默认值1（免费评估）
+          console.log('无保存的评估次数，设置为默认值1');
+          setEvaluationRemaining(1);
+          localStorage.setItem(evalKey, '1'); // 保存默认值
         }
         
         // 处理优化次数
@@ -107,9 +121,10 @@ export default function DashboardPage() {
             localStorage.setItem(optKey, '0');
           }
         } else {
-          // 没有保存的值，设置为0
-          console.log('无保存的优化次数，设置为0');
+          // 没有保存的值，设置为默认值0
+          console.log('无保存的优化次数，设置为默认值0');
           setOptimizationRemaining(0);
+          localStorage.setItem(optKey, '0'); // 保存默认值
         }
       } else {
         // 登录用户：加载保存的值或使用默认值
@@ -157,13 +172,13 @@ export default function DashboardPage() {
                 console.log('设置迁移后的评估次数:', evalValue);
               } else {
                 console.warn('迁移后评估次数无效，重置为默认值');
-                setEvaluationRemaining(2);
-                localStorage.setItem(evalKey, '2');
+                setEvaluationRemaining(3);
+                localStorage.setItem(evalKey, '3');
               }
             } else {
-              console.log('迁移后无评估次数，设置为默认值2');
-              setEvaluationRemaining(2);
-              localStorage.setItem(evalKey, '2');
+              console.log('迁移后无评估次数，设置为默认值3');
+              setEvaluationRemaining(3);
+              localStorage.setItem(evalKey, '3');
             }
             
             // 处理优化次数
@@ -174,13 +189,13 @@ export default function DashboardPage() {
                 console.log('设置迁移后的优化次数:', optValue);
               } else {
                 console.warn('迁移后优化次数无效，重置为默认值');
-                setOptimizationRemaining(2);
-                localStorage.setItem(optKey, '2');
+                setOptimizationRemaining(0);
+                localStorage.setItem(optKey, '0');
               }
             } else {
-              console.log('迁移后无优化次数，设置为默认值2');
-              setOptimizationRemaining(2);
-              localStorage.setItem(optKey, '2');
+              console.log('迁移后无优化次数，设置为默认值0');
+              setOptimizationRemaining(0);
+              localStorage.setItem(optKey, '0');
             }
           }
         }
@@ -196,14 +211,14 @@ export default function DashboardPage() {
             } else {
               // 值无效，设置为默认值
               console.warn('评估次数无效，重置为默认值');
-              setEvaluationRemaining(2);
-              localStorage.setItem(evalKey, '2');
+              setEvaluationRemaining(3);
+              localStorage.setItem(evalKey, '3');
             }
           } else {
-            // 无保存的评估次数，设置为默认值2
-            console.log('无保存的评估次数，设置为默认值2');
-            setEvaluationRemaining(2);
-            localStorage.setItem(evalKey, '2');
+            // 无保存的评估次数，设置为默认值3（新用户注册获得3次评估）
+            console.log('无保存的评估次数，设置为默认值3');
+            setEvaluationRemaining(3);
+            localStorage.setItem(evalKey, '3');
           }
           
           // 处理优化次数
@@ -215,22 +230,22 @@ export default function DashboardPage() {
             } else {
               // 值无效，设置为默认值
               console.warn('优化次数无效，重置为默认值');
-              setOptimizationRemaining(2);
-              localStorage.setItem(optKey, '2');
+              setOptimizationRemaining(0);
+              localStorage.setItem(optKey, '0');
             }
           } else {
-            // 无保存的优化次数，设置为默认值2
-            console.log('无保存的优化次数，设置为默认值2');
-            setOptimizationRemaining(2);
-            localStorage.setItem(optKey, '2');
+            // 无保存的优化次数，设置为默认值0
+            console.log('无保存的优化次数，设置为默认值0');
+            setOptimizationRemaining(0);
+            localStorage.setItem(optKey, '0');
           }
         }
       }
     } catch (error) {
       console.error('加载使用次数时出错:', error);
       // 出错时设置为默认值
-      setEvaluationRemaining(2);
-      setOptimizationRemaining(2);
+      setEvaluationRemaining(isAuthenticated ? 3 : 1);
+      setOptimizationRemaining(0);
     }
     
     setIsLoadingCounts(false); // 加载完成
@@ -1261,7 +1276,7 @@ export default function DashboardPage() {
                     <div className="flex flex-col sm:flex-row gap-2">
                       <Input
                         type="text"
-                        placeholder="万柏666"
+                        placeholder="请输入兑换码"
                         value={redeemCode}
                         onChange={(e) => setRedeemCode(e.target.value)}
                         disabled={isRedeeming}

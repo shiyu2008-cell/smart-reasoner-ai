@@ -33,6 +33,10 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 .env.docker
+.env.local
+.env.development
+.env.production
+.env.example
 
 # vercel
 .vercel
@@ -43,3 +47,51 @@ next-env.d.ts
 
 # local scripts
 start.bat
+
+# database
+*.db
+*.db-journal
+sqlite.db
+
+# logs
+*.log
+logs/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# build artifacts
+dist/
+build/
+out/
+
+# temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# secrets and sensitive files
+secrets/
+credentials/
+*.key
+*.cert
+*.p12
+
+# coverage reports
+coverage/
+.nyc_output/
+
+# node modules
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini

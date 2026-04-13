@@ -29,11 +29,17 @@ export default function RegisterPage() {
     setFormData((prev) => {
       const newFormData = { ...prev, [name]: value };
       
-      // 实时验证密码匹配
+      // 实时验证密码匹配（改进版）
       if (name === "password" || name === "confirmPassword") {
-        if (newFormData.password && newFormData.confirmPassword && newFormData.password !== newFormData.confirmPassword) {
-          setPasswordError("密码不匹配");
+        // 只要确认密码有输入，就验证匹配
+        if (newFormData.confirmPassword && newFormData.confirmPassword.length > 0) {
+          if (newFormData.password !== newFormData.confirmPassword) {
+            setPasswordError("密码输入不一致");
+          } else {
+            setPasswordError(""); // 密码匹配时清除错误
+          }
         } else {
+          // 确认密码为空时不显示错误
           setPasswordError("");
         }
       }
@@ -56,7 +62,7 @@ export default function RegisterPage() {
       return "密码长度至少为8位";
     }
     if (formData.password !== formData.confirmPassword) {
-      return "两次输入的密码不匹配";
+      return "密码输入不一致";
     }
     return "";
   };
@@ -196,7 +202,11 @@ export default function RegisterPage() {
                   value={formData.password}
                   onChange={handleChange}
                   required
-                  className="pl-10 pr-10 h-11 border-border/50 bg-background/50 focus:border-accent focus:ring-accent/20 transition-all duration-300"
+                  className={`pl-10 pr-10 h-11 border-border/50 bg-background/50 focus:border-accent focus:ring-accent/20 transition-all duration-300 ${
+                    passwordError && passwordError.includes("密码输入不一致") && formData.confirmPassword
+                      ? "border-destructive focus:border-destructive focus:ring-destructive/20"
+                      : ""
+                  }`}
                   autoComplete="new-password"
                   disabled={isPending}
                 />
@@ -231,7 +241,11 @@ export default function RegisterPage() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   required
-                  className="pl-10 pr-10 h-11 border-border/50 bg-background/50 focus:border-accent focus:ring-accent/20 transition-all duration-300"
+                  className={`pl-10 pr-10 h-11 border-border/50 bg-background/50 focus:border-accent focus:ring-accent/20 transition-all duration-300 ${
+                    passwordError && passwordError.includes("密码输入不一致") && formData.confirmPassword
+                      ? "border-destructive focus:border-destructive focus:ring-destructive/20"
+                      : ""
+                  }`}
                   autoComplete="new-password"
                   disabled={isPending}
                 />

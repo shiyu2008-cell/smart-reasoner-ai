@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle, Loader2, User, Mail, Hash, Calendar, Clock, LogOut, CreditCard, BarChart3, History, Settings as SettingsIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, validateDeveloperCode } from "@/lib/utils";
 
 // 兑换码历史记录类型
 interface RedemptionHistory {
@@ -375,8 +375,11 @@ export default function SettingsPage() {
         return;
       }
 
-      // 验证开发者代码
-      if (developerCode.trim() !== 'lby1998lamp') {
+      // 验证开发者代码（使用哈希验证）
+      const developerCodeHash = process.env.NEXT_PUBLIC_DEVELOPER_CODE_HASH;
+      const isValid = await validateDeveloperCode(developerCode.trim(), developerCodeHash);
+      
+      if (!isValid) {
         setRedeemError("开发者代码无效，请检查后重试");
         return;
       }
