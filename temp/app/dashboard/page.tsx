@@ -251,6 +251,77 @@ export default function DashboardPage() {
     setIsLoadingCounts(false); // 加载完成
   }, [isAuthenticated, isAuthLoading]);
 
+  // 同步数据库积分（登录用户）
+  useEffect(() => {
+    if (isAuthLoading || !isAuthenticated) return; // 等待认证完成或未登录用户跳过
+    
+    const syncDatabaseCredits = async () => {
+      try {
+        console.log('开始同步数据库积分...');
+        
+        // 检查开发者模式（优先）
+        const userId = 'authenticated'; // 登录用户固定ID
+        const isDeveloperMode = localStorage.getItem(`developerModeFixed_${userId}`) === 'true';
+        
+        if (isDeveloperMode) {
+          // 开发者模式已处理，跳过数据库同步
+          console.log('开发者模式用户，跳过数据库同步');
+          return;
+        }
+        
+        // 调用API获取数据库积分
+        const response = await fetch('/api/user/credits', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (!response.ok) {
+          console.warn('数据库积分API调用失败:', response.status, response.statusText);
+          return; // 静默失败，继续使用本地存储
+        }
+        
+        const result = await response.json();
+        
+        if (result.success && result.credits) {
+          const dbEvaluationCredits = result.credits.evaluationCredits;
+          const dbOptimizationCredits = result.credits.optimizationCredits;
+          
+          console.log('数据库积分获取成功:', { 
+            dbEvaluationCredits, 
+            dbOptimizationCredits 
+          });
+          
+          // 获取本地存储的当前值
+          const evalKey = `evaluationRemaining_${userId}`;
+          const optKey = `optimizationRemaining_${userId}`;
+          const localEvaluation = parseInt(localStorage.getItem(evalKey) || '0', 10);
+          const localOptimization = parseInt(localStorage.getItem(optKey) || '0', 10);
+          
+          // 如果数据库值大于本地值，使用数据库值（注册时3次机会等场景）
+          // 或者如果本地值为0但数据库有值（数据丢失恢复）
+          if (dbEvaluationCredits > localEvaluation || (localEvaluation === 0 && dbEvaluationCredits > 0)) {
+            console.log('评估次数需要同步，数据库值更大:', dbEvaluationCredits, '本地:', localEvaluation);
+            localStorage.setItem(evalKey, dbEvaluationCredits.toString());
+            setEvaluationRemaining(dbEvaluationCredits);
+          }
+          
+          if (dbOptimizationCredits > localOptimization || (localOptimization === 0 && dbOptimizationCredits > 0)) {
+            console.log('优化次数需要同步，数据库值更大:', dbOptimizationCredits, '本地:', localOptimization);
+            localStorage.setItem(optKey, dbOptimizationCredits.toString());
+            setOptimizationRemaining(dbOptimizationCredits);
+          }
+        }
+      } catch (error) {
+        console.error('同步数据库积分时出错:', error);
+        // 静默失败，不影响用户体验
+      }
+    };
+    
+    syncDatabaseCredits();
+  }, [isAuthenticated, isAuthLoading]);
+
   // 修复开发者代码兑换错误数据（针对万柏用户的问题）
   useEffect(() => {
     if (isAuthLoading) return; // 等待认证状态加载完成
@@ -529,13 +600,13 @@ export default function DashboardPage() {
     setEvaluationResult(null);
     setEvaluationError(null);
     setIsEvaluating(true);
+    
+    // 检查是否为开发者模式（固定次数）- 在try块外部定义，以便catch块访问
+    const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+    const isDeveloperMode = localStorage.getItem(`developerModeFixed_${userId}`) === 'true';
 
     try {
       console.log('开始调用评估API...', isManualTrigger ? '(手动触发)' : '(自动触发)');
-      
-      // 检查是否为开发者模式（固定次数）
-      const userId = isAuthenticated ? 'authenticated' : 'anonymous';
-      const isDeveloperMode = localStorage.getItem(`developerModeFixed_${userId}`) === 'true';
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时
@@ -592,6 +663,31 @@ export default function DashboardPage() {
           setNeedsReevaluation(false);
           // 记录上一次成功评估的文本哈希
           setLastEvaluatedHash(currentHash);
+          
+          // 更新剩余次数（使用API返回的实际值，确保与数据库同步）
+          if (result.credits && !isDeveloperMode) {
+            const remainingEvaluation = result.credits.remainingEvaluationCredits;
+            const remainingOptimization = result.credits.remainingOptimizationCredits;
+            
+            console.log('从API响应更新剩余次数:', {
+              评估剩余: remainingEvaluation,
+              优化剩余: remainingOptimization
+            });
+            
+            // 更新状态
+            setEvaluationRemaining(remainingEvaluation);
+            setOptimizationRemaining(remainingOptimization);
+            
+            // 更新localStorage（确保持久化）
+            const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+            const evalKey = `evaluationRemaining_${userId}`;
+            const optKey = `optimizationRemaining_${userId}`;
+            
+            localStorage.setItem(evalKey, remainingEvaluation.toString());
+            localStorage.setItem(optKey, remainingOptimization.toString());
+            
+            console.log('剩余次数已同步到localStorage');
+          }
         } else {
           console.log('评估结果已过期，输入已变化，丢弃结果');
         }
@@ -609,10 +705,23 @@ export default function DashboardPage() {
       setEvaluationError(errorMessage);
       setEvaluationResult(null);
       console.error('评估错误:', err);
+      
+      // API失败时回滚评估次数扣减（非开发者模式）
+      if (!isDeveloperMode) {
+        console.log('评估API失败，回滚评估次数加1次');
+        setEvaluationRemaining(prev => prev + 1); // 回滚扣减
+        
+        // 同时更新localStorage
+        const userId = isAuthenticated ? 'authenticated' : 'anonymous';
+        const evalKey = `evaluationRemaining_${userId}`;
+        const currentEval = evaluationRemaining + 1; // 因为setEvaluationRemaining是异步的，我们直接计算
+        localStorage.setItem(evalKey, currentEval.toString());
+        console.log('评估次数已回滚，当前次数:', currentEval);
+      }
     } finally {
       setIsEvaluating(false);
     }
-  }, [resume, jobDescription, calculateInputHash, isEvaluating, lastEvaluationInputHash, evaluationResult]);
+  }, [resume, jobDescription, calculateInputHash, isEvaluating, lastEvaluationInputHash, evaluationResult, isAuthenticated, evaluationRemaining]);
 
 
   // 清除评估结果
@@ -801,6 +910,10 @@ export default function DashboardPage() {
     const userId = isAuthenticated ? 'authenticated' : 'anonymous';
     const isDeveloperMode = localStorage.getItem(`developerModeFixed_${userId}`) === 'true';
     
+    // 保存当前次数用于可能的回滚
+    const previousEvaluationRemaining = evaluationRemaining;
+    const previousOptimizationRemaining = optimizationRemaining;
+    
     // 减少优化次数（开发者模式不扣减）
     if (!isDeveloperMode) {
       setOptimizationRemaining(prev => prev - 1);
@@ -849,6 +962,43 @@ export default function DashboardPage() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `API请求失败: ${response.status}`);
+      }
+
+      // 从响应头读取剩余次数并同步到前端（非开发者模式）
+      if (!isDeveloperMode) {
+        const remainingEvalHeader = response.headers.get('X-Remaining-Evaluation-Credits');
+        const remainingOptHeader = response.headers.get('X-Remaining-Optimization-Credits');
+        
+        if (remainingEvalHeader !== null || remainingOptHeader !== null) {
+          console.log('从优化API响应头读取剩余次数:', {
+            evalHeader: remainingEvalHeader,
+            optHeader: remainingOptHeader
+          });
+          
+          // 更新评估剩余次数（如果响应头有值）
+          if (remainingEvalHeader !== null) {
+            const remainingEval = parseInt(remainingEvalHeader, 10);
+            if (!isNaN(remainingEval) && remainingEval >= 0) {
+              setEvaluationRemaining(remainingEval);
+              localStorage.setItem(`evaluationRemaining_${userId}`, remainingEval.toString());
+              console.log('评估剩余次数已更新为:', remainingEval);
+            }
+          }
+          
+          // 更新优化剩余次数（如果响应头有值）
+          if (remainingOptHeader !== null) {
+            const remainingOpt = parseInt(remainingOptHeader, 10);
+            if (!isNaN(remainingOpt) && remainingOpt >= 0) {
+              setOptimizationRemaining(remainingOpt);
+              localStorage.setItem(`optimizationRemaining_${userId}`, remainingOpt.toString());
+              console.log('优化剩余次数已更新为:', remainingOpt);
+            }
+          }
+        } else {
+          console.log('优化API响应头中未找到剩余次数信息，使用前端扣减后的值');
+        }
+      } else {
+        console.log('开发者模式，跳过剩余次数同步');
       }
 
       // 处理流式响应
@@ -904,6 +1054,20 @@ export default function DashboardPage() {
       setAiState('error');
       setError(err instanceof Error ? err.message : "处理过程中出现错误，请稍后重试");
       console.error("优化请求错误:", err);
+      
+      // API失败时回滚优化次数扣减（非开发者模式）
+      if (!isDeveloperMode) {
+        console.log('优化API失败，回滚优化次数到之前的值:', previousOptimizationRemaining);
+        setOptimizationRemaining(previousOptimizationRemaining);
+        localStorage.setItem(`optimizationRemaining_${userId}`, previousOptimizationRemaining.toString());
+        
+        // 如果评估次数在API调用前有变化，也回滚（虽然通常不会变化）
+        if (previousEvaluationRemaining !== evaluationRemaining) {
+          console.log('检测到评估次数变化，回滚评估次数到之前的值:', previousEvaluationRemaining);
+          setEvaluationRemaining(previousEvaluationRemaining);
+          localStorage.setItem(`evaluationRemaining_${userId}`, previousEvaluationRemaining.toString());
+        }
+      }
     } finally {
       setIsLoading(false);
     }

@@ -24,12 +24,6 @@ export interface CreateRedeemRecordInput {
   timestamp: Date;
 }
 
-// Better Auth API响应格式
-interface BetterAuthResponse<T = unknown> {
-  data?: T;
-  id?: string;
-}
-
 // 错误类
 export class RedeemError extends Error {
   constructor(
